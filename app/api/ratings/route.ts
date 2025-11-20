@@ -26,9 +26,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let movieId: string | undefined;
+  let userId: string | undefined;
+  
   try {
     const body = await request.json();
-    const { movieId, userId, rating, review } = body;
+    movieId = body.movieId;
+    userId = body.userId;
+    const { rating, review } = body;
 
     if (!movieId || !userId || !rating) {
       return NextResponse.json(
@@ -62,7 +67,10 @@ export async function POST(request: Request) {
   } catch (error: any) {
     logger.error("Error creating rating", error);
     if (error.code === "P2002") {
-      logger.warn("User already rated this movie", { movieId, userId });
+      logger.warn("User already rated this movie", { 
+        movieId: movieId || "unknown", 
+        userId: userId || "unknown" 
+      });
       return NextResponse.json(
         { error: "You have already rated this movie" },
         { status: 409 }

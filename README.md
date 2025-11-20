@@ -33,6 +33,7 @@ npm install
 #### 創建配置文件
 
 1. **複製示例配置文件**：
+
    ```bash
    cp config.json.example config.json
    ```
@@ -49,10 +50,12 @@ npm install
 #### 獲取 Supabase 連接字符串
 
 1. **創建 Supabase 項目**（如果還沒有）
+
    - 前往 https://supabase.com 創建項目
    - 詳細步驟請查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 2. **獲取連接池連接字符串**
+
    - 在 Supabase Dashboard 中
    - 進入 **Project Settings** > **Database**
    - 找到 **"Connection pooling"** 部分
@@ -65,6 +68,7 @@ npm install
 #### 生產環境（Vercel）
 
 在 Vercel 環境變數中設置 `DATABASE_URL`：
+
 1. 進入 Vercel 項目設置
 2. **Settings** > **Environment Variables**
 3. 添加 `DATABASE_URL`，值為 Supabase 連接字符串（與 `config.json` 中的相同）
