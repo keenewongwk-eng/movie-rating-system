@@ -28,28 +28,40 @@ npm install
 
 ### 2. 設置數據庫
 
-#### 本地開發（使用 localhost）
+本項目使用 Supabase 作為數據庫（本地和生產環境都使用同一個數據庫）。
 
-創建 `.env` 文件，填入本地數據庫連接字符串：
+#### 獲取 Supabase 連接字符串
 
-```bash
-# 創建 .env 文件
-echo 'DATABASE_URL="postgresql://postgres:p@ssw0rd@localhost:5433/movie_ratings"' > .env
-```
+1. **創建 Supabase 項目**（如果還沒有）
+   - 前往 https://supabase.com 創建項目
+   - 詳細步驟請查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-或者手動創建 `.env` 文件：
-```
-DATABASE_URL="postgresql://postgres:p@ssw0rd@localhost:5433/movie_ratings"
-```
+2. **獲取連接池連接字符串**
+   - 在 Supabase Dashboard 中
+   - 進入 **Project Settings** > **Database**
+   - 找到 **"Connection pooling"** 部分
+   - 選擇 **"Session mode"**（適合 Prisma）
+   - 複製連接字符串
 
-#### 生產環境（使用 Supabase 或其他雲數據庫）
+3. **設置本地環境變數**
+   
+   創建 `.env` 文件：
+   ```bash
+   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
+   ```
+   
+   或者創建 `.env.local` 文件（推薦，不會被提交到 Git）：
+   ```bash
+   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
+   ```
 
-⚠️ **重要**: 如果要在 Vercel 部署，必須使用遠程數據庫（不能使用 localhost）
+#### 生產環境（Vercel）
 
-推薦使用 Supabase（免費）：
-1. 前往 https://supabase.com 創建項目
-2. 獲取數據庫連接字符串
-3. 在 Vercel 環境變數中設置 `DATABASE_URL`
+在 Vercel 環境變數中設置相同的 `DATABASE_URL`：
+1. 進入 Vercel 項目設置
+2. **Settings** > **Environment Variables**
+3. 添加 `DATABASE_URL`，值為 Supabase 連接字符串
+4. 選擇所有環境（Production、Preview、Development）
 
 詳細步驟請查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
