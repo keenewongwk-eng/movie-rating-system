@@ -76,122 +76,65 @@ async function main() {
       },
     });
 
-    // 創建示例評分
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie1.id,
-          userId: user1.id,
+    // 創建示例評分（使用 findFirst 檢查是否已存在主評論）
+    const createRatingIfNotExists = async (
+      movieId: string,
+      userId: string,
+      rating: number,
+      review: string
+    ) => {
+      const existing = await prisma.rating.findFirst({
+        where: {
+          movieId,
+          userId,
+          parentId: null, // 只檢查主評論
         },
-      },
-      update: {},
-      create: {
-        movieId: movie1.id,
-        userId: user1.id,
-        rating: 4,
-        review: "Ok la",
-      },
-    });
+      });
 
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie1.id,
-          userId: user2.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie1.id,
-        userId: user2.id,
-        rating: 5,
-        review: "型呀",
-      },
-    });
+      if (!existing) {
+        await prisma.rating.create({
+          data: {
+            movieId,
+            userId,
+            rating,
+            review,
+          },
+        });
+      }
+    };
 
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie1.id,
-          userId: user3.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie1.id,
-        userId: user3.id,
-        rating: 4,
-        review:
-          "Ok嘅！係唔理解點解慶功宴都唔去，又唔見情人一面，就瀟灑到頭也不回走左去😂唔講以為佢有絕症",
-      },
-    });
-
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie2.id,
-          userId: user3.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie2.id,
-        userId: user3.id,
-        rating: 5,
-        review: "笑死🤣佐藤健靚仔到唔認得！\n一班人一齊睇嘅輕鬆搞笑小品🖖🏼",
-      },
-    });
-
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie3.id,
-          userId: user3.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie3.id,
-        userId: user3.id,
-        rating: 2,
-        review:
-          "期待已久😂但唔知原來大製作到上埋宇宙\n真係絕級天馬行空 + chok到嘔😂fun~",
-      },
-    });
-
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie3.id,
-          userId: user1.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie3.id,
-        userId: user1.id,
-        rating: 1,
-        review:
-          "電影頭前30分鐘還好仲算緊張刺激\n中後部分節奏開始拖慢\n人物動機離曬大譜\n主角廢到笑 勁嗰個主角chok到笑……",
-      },
-    });
-
-    await prisma.rating.upsert({
-      where: {
-        movieId_userId: {
-          movieId: movie4.id,
-          userId: user3.id,
-        },
-      },
-      update: {},
-      create: {
-        movieId: movie4.id,
-        userId: user3.id,
-        rating: 3,
-        review:
-          "畫風靚！但啲配音真係唔得😂勁出戲好尷尬呀🥶\n聽講係催淚片但完全喊唔出",
-      },
-    });
+    await createRatingIfNotExists(movie1.id, user1.id, 4, "Ok la");
+    await createRatingIfNotExists(movie1.id, user2.id, 5, "型呀");
+    await createRatingIfNotExists(
+      movie1.id,
+      user3.id,
+      4,
+      "Ok嘅！係唔理解點解慶功宴都唔去，又唔見情人一面，就瀟灑到頭也不回走左去😂唔講以為佢有絕症"
+    );
+    await createRatingIfNotExists(
+      movie2.id,
+      user3.id,
+      5,
+      "笑死🤣佐藤健靚仔到唔認得！\n一班人一齊睇嘅輕鬆搞笑小品🖖🏼"
+    );
+    await createRatingIfNotExists(
+      movie3.id,
+      user3.id,
+      2,
+      "期待已久😂但唔知原來大製作到上埋宇宙\n真係絕級天馬行空 + chok到嘔😂fun~"
+    );
+    await createRatingIfNotExists(
+      movie3.id,
+      user1.id,
+      1,
+      "電影頭前30分鐘還好仲算緊張刺激\n中後部分節奏開始拖慢\n人物動機離曬大譜\n主角廢到笑 勁嗰個主角chok到笑……"
+    );
+    await createRatingIfNotExists(
+      movie4.id,
+      user3.id,
+      3,
+      "畫風靚！但啲配音真係唔得😂勁出戲好尷尬呀🥶\n聽講係催淚片但完全喊唔出"
+    );
 
     console.log("示例數據導入完成！");
     console.log(`已創建 ${await prisma.user.count()} 個用戶`);
