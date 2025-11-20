@@ -63,7 +63,7 @@ export default function MovieCard({
       >
         <div className="flex gap-4">
           {movie.image && (
-            <div className="flex-shrink-0 w-20 h-28 overflow-hidden rounded">
+            <div className="flex-shrink-0 w-20 aspect-[2/3] overflow-hidden rounded">
               <img
                 src={movie.image}
                 alt={movie.title}
