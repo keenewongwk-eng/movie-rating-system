@@ -206,7 +206,9 @@ export default function MoviePage() {
                   <div className="flex items-center gap-2">
                     <span className="text-yellow-400 text-2xl">⭐</span>
                     <span className="text-xl font-semibold">
-                      {movie.averageRating.toFixed(1)}
+                      {movie.averageRating > 0
+                        ? movie.averageRating.toFixed(1)
+                        : "無"}
                     </span>
                     <span className="text-gray-400">
                       ({movie.ratingCount} 個評分)

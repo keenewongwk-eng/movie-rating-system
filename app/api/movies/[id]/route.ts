@@ -89,11 +89,41 @@ export async function PUT(
           include: {
             user: true,
           },
+          orderBy: {
+            createdAt: "desc",
+          },
         },
       },
     });
 
-    return NextResponse.json(updatedMovie);
+    // 計算平均評分
+    const ratings = updatedMovie.ratings || [];
+    const avgRating =
+      ratings.length > 0
+        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+          ratings.length
+        : 0;
+
+    return NextResponse.json({
+      id: updatedMovie.id,
+      title: updatedMovie.title,
+      image: updatedMovie.image,
+      createdAt: updatedMovie.createdAt.toISOString(),
+      updatedAt: updatedMovie.updatedAt.toISOString(),
+      averageRating: Math.round(avgRating * 10) / 10,
+      ratingCount: ratings.length,
+      ratings: ratings.map((r: any) => ({
+        id: r.id,
+        rating: r.rating,
+        review: r.review,
+        createdAt: r.createdAt.toISOString(),
+        user: {
+          id: r.user.id,
+          name: r.user.name,
+          icon: r.user.icon,
+        },
+      })),
+    });
   } catch (error: any) {
     if (error.code === "P2025") {
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
