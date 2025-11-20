@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { handleApiError } from "@/lib/api-error-handler";
 
 export async function GET() {
   try {
@@ -16,12 +17,13 @@ export async function GET() {
 
     logger.info("Ratings fetched successfully", { count: ratings.length });
     return NextResponse.json(ratings);
-  } catch (error) {
-    logger.error("Error fetching ratings", error);
-    return NextResponse.json(
-      { error: "Failed to fetch ratings" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return handleApiError(error, {
+      status: 500,
+      message: "Failed to fetch ratings",
+      route: "/api/ratings",
+      method: "GET",
+    });
   }
 }
 
@@ -65,7 +67,6 @@ export async function POST(request: Request) {
     logger.info("Rating created successfully", { ratingId: newRating.id, movieId, userId });
     return NextResponse.json(newRating, { status: 201 });
   } catch (error: any) {
-    logger.error("Error creating rating", error);
     if (error.code === "P2002") {
       logger.warn("User already rated this movie", { 
         movieId: movieId || "unknown", 
@@ -76,9 +77,11 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-    return NextResponse.json(
-      { error: "Failed to create rating" },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      status: 500,
+      message: "Failed to create rating",
+      route: "/api/ratings",
+      method: "POST",
+    });
   }
 }

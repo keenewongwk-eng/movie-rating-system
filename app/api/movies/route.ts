@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { handleApiError } from "@/lib/api-error-handler";
 
 export async function GET() {
   try {
@@ -56,31 +57,15 @@ export async function GET() {
       Array.isArray(moviesWithStats) ? moviesWithStats : []
     );
   } catch (error: any) {
-    logger.error("Error fetching movies", error);
-    
-    // 在生產環境中提供更詳細的錯誤信息
-    const errorMessage = error?.message || "Unknown error";
-    const errorCode = error?.code || "UNKNOWN";
-    
-    console.error("Movies API Error:", {
-      message: errorMessage,
-      code: errorCode,
-      stack: error?.stack,
+    // 使用統一的錯誤處理，確保記錄到日誌
+    const errorResponse = handleApiError(error, {
+      status: 500,
+      message: "Failed to fetch movies",
+      route: "/api/movies",
+      method: "GET",
     });
     
-    // 返回錯誤信息以便調試（開發環境）或空數組（生產環境）
-    if (process.env.NODE_ENV === "development") {
-      return NextResponse.json(
-        { 
-          error: "Failed to fetch movies", 
-          details: errorMessage,
-          code: errorCode 
-        },
-        { status: 500 }
-      );
-    }
-    
-    // 生產環境返回空數組，但記錄詳細錯誤
+    // GET 請求在錯誤時返回空數組而不是錯誤對象
     return NextResponse.json([], { status: 500 });
   }
 }
@@ -109,7 +94,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(movie, { status: 201 });
   } catch (error: any) {
-    logger.error("Error creating movie", error);
     if (error.code === "P2002") {
       logger.warn("Movie already exists", { title: title || "unknown" });
       return NextResponse.json(
@@ -117,9 +101,11 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-    return NextResponse.json(
-      { error: "Failed to create movie" },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      status: 500,
+      message: "Failed to create movie",
+      route: "/api/movies",
+      method: "POST",
+    });
   }
 }

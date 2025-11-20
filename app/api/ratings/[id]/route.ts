@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { handleApiError } from "@/lib/api-error-handler";
 
 export async function PUT(
   request: Request,
@@ -32,15 +33,16 @@ export async function PUT(
     logger.info("Rating updated successfully", { ratingId: params.id });
     return NextResponse.json(updatedRating);
   } catch (error: any) {
-    logger.error("Error updating rating", error);
     if (error.code === "P2025") {
       logger.warn("Rating not found", { ratingId: params.id });
       return NextResponse.json({ error: "Rating not found" }, { status: 404 });
     }
-    return NextResponse.json(
-      { error: "Failed to update rating" },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      status: 500,
+      message: "Failed to update rating",
+      route: `/api/ratings/${params.id}`,
+      method: "PUT",
+    });
   }
 }
 
@@ -56,14 +58,15 @@ export async function DELETE(
     logger.info("Rating deleted successfully", { ratingId: params.id });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    logger.error("Error deleting rating", error);
     if (error.code === "P2025") {
       logger.warn("Rating not found for deletion", { ratingId: params.id });
       return NextResponse.json({ error: "Rating not found" }, { status: 404 });
     }
-    return NextResponse.json(
-      { error: "Failed to delete rating" },
-      { status: 500 }
-    );
+    return handleApiError(error, {
+      status: 500,
+      message: "Failed to delete rating",
+      route: `/api/ratings/${params.id}`,
+      method: "DELETE",
+    });
   }
 }
