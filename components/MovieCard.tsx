@@ -124,12 +124,14 @@ export default function MovieCard({
     <div className="bg-surface rounded-lg p-6 shadow-lg">
       <div className="flex flex-col md:flex-row gap-6">
         {movie.image && (
-          <div className="flex-shrink-0 cursor-pointer" onClick={handleCardClick}>
-            <img
-              src={movie.image}
-              alt={movie.title}
-              className="w-full md:w-48 h-64 object-cover rounded-lg hover:opacity-90 transition-opacity"
-            />
+          <div className="flex-shrink-0 w-full md:w-48 cursor-pointer" onClick={handleCardClick}>
+            <div className="aspect-[2/3] overflow-hidden rounded-lg">
+              <img
+                src={movie.image}
+                alt={movie.title}
+                className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+              />
+            </div>
           </div>
         )}
         <div className="flex-1">
