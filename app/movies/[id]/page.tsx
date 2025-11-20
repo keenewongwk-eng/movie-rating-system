@@ -155,27 +155,27 @@ export default function MoviePage() {
         </Link>
 
         {/* 電影標題和圖片 */}
-        <div className="mb-8">
+        <div className="mb-6">
           {editing ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <input
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-2xl font-bold"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg sm:text-xl font-bold"
                 placeholder="電影名稱"
               />
               <input
                 type="text"
                 value={editImage}
                 onChange={(e) => setEditImage(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm"
                 placeholder="圖片 URL（可選）"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleUpdate}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                 >
                   保存
                 </button>
@@ -185,46 +185,48 @@ export default function MoviePage() {
                     setEditTitle(movie.title);
                     setEditImage(movie.image || "");
                   }}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
+                  className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                 >
                   取消
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
               {movie.image && (
                 <img
                   src={movie.image}
                   alt={movie.title}
-                  className="w-48 h-72 object-cover rounded-lg"
+                  className="w-full sm:w-32 md:w-40 h-auto sm:h-48 md:h-56 object-cover rounded-lg"
                 />
               )}
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-yellow-400 text-2xl">⭐</span>
-                    <span className="text-xl font-semibold">
+              <div className="flex-1 w-full">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 break-words">
+                  {movie.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-yellow-400 text-lg sm:text-xl">⭐</span>
+                    <span className="text-lg sm:text-xl font-semibold">
                       {movie.averageRating > 0
                         ? movie.averageRating.toFixed(1)
                         : "無"}
                     </span>
-                    <span className="text-gray-400">
+                    <span className="text-gray-400 text-sm sm:text-base">
                       ({movie.ratingCount} 個評分)
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setEditing(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                    className="px-3 py-1.5 text-sm sm:text-base bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                   >
                     編輯標題
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                    className="px-3 py-1.5 text-sm sm:text-base bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
                   >
                     刪除電影
                   </button>
@@ -237,16 +239,16 @@ export default function MoviePage() {
         {/* 刪除確認對話框 */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
-              <h2 className="text-xl font-bold mb-4">確認刪除</h2>
-              <p className="text-gray-300 mb-6">
+            <div className="bg-gray-800 p-4 sm:p-6 rounded-lg max-w-md w-full mx-4">
+              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">確認刪除</h2>
+              <p className="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6 break-words">
                 確定要刪除「{movie.title}」嗎？此操作無法復原，所有相關評分也會被刪除。
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50"
+                  className="flex-1 px-3 py-2 text-sm sm:text-base bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {deleting ? "刪除中..." : "確認刪除"}
                 </button>
@@ -256,7 +258,7 @@ export default function MoviePage() {
                     setDeleting(false);
                   }}
                   disabled={deleting}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-50"
+                  className="flex-1 px-3 py-2 text-sm sm:text-base bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   取消
                 </button>
@@ -266,14 +268,14 @@ export default function MoviePage() {
         )}
 
         {/* 評分表單 */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">新增評分</h2>
+        <div className="mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-3">新增評分</h2>
           <RatingForm movieId={movieId} onSuccess={fetchMovie} />
         </div>
 
         {/* 評論列表 */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold mb-3">
             所有評論 ({movie.ratings.length})
           </h2>
           {movie.ratings.length === 0 ? (
@@ -285,22 +287,22 @@ export default function MoviePage() {
               {movie.ratings.map((rating) => (
                 <div
                   key={rating.id}
-                  className="bg-gray-800 p-4 rounded-lg border border-gray-700"
+                  className="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{rating.user.icon}</span>
-                      <span className="font-semibold">{rating.user.name}</span>
-                      <span className="text-yellow-400">
+                  <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="text-xl sm:text-2xl">{rating.user.icon}</span>
+                      <span className="font-semibold text-sm sm:text-base">{rating.user.name}</span>
+                      <span className="text-yellow-400 text-sm sm:text-base">
                         {"⭐".repeat(rating.rating)}
                       </span>
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-400 text-xs sm:text-sm">
                         {new Date(rating.createdAt).toLocaleDateString("zh-TW")}
                       </span>
                     </div>
                   </div>
                   {rating.review && (
-                    <p className="text-gray-300 mt-2 whitespace-pre-wrap">
+                    <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words">
                       {rating.review}
                     </p>
                   )}
