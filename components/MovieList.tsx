@@ -34,7 +34,7 @@ export default function MovieList() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [viewMode, setViewMode] = useState<ViewMode>("large");
+  const [viewMode, setViewMode] = useState<ViewMode>("small");
 
   const fetchMovies = async () => {
     try {
