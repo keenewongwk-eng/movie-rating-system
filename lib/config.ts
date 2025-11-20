@@ -14,6 +14,17 @@ function loadConfig(): Config {
     return config;
   }
 
+  // 優先使用環境變數（Vercel 部署時）
+  if (process.env.DATABASE_URL) {
+    config = {
+      database: {
+        url: process.env.DATABASE_URL,
+      },
+    };
+    return config;
+  }
+
+  // 本地開發時使用 config.json
   const configPath = path.join(process.cwd(), "config.json");
   const examplePath = path.join(process.cwd(), "config.json.example");
 
@@ -27,8 +38,10 @@ function loadConfig(): Config {
       );
     } else {
       throw new Error(
-        `❌ config.json not found and config.json.example is missing!\n` +
-        `Please create config.json with your database configuration.`
+        `❌ config.json not found and DATABASE_URL environment variable is not set!\n` +
+        `Please either:\n` +
+        `1. Create config.json with your database configuration, or\n` +
+        `2. Set DATABASE_URL environment variable`
       );
     }
   }
@@ -60,4 +73,3 @@ export function getDatabaseUrl(): string {
   const config = getConfig();
   return config.database.url;
 }
-
