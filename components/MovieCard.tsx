@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import RatingForm from "./RatingForm";
 
 interface Movie {
@@ -33,7 +34,22 @@ export default function MovieCard({
   onUpdate,
   viewMode = "large",
 }: MovieCardProps) {
+  const router = useRouter();
   const [showRatingForm, setShowRatingForm] = useState(false);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 如果點擊的是按鈕或表單，不跳轉
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === "BUTTON" ||
+      target.closest("button") ||
+      target.closest("form") ||
+      target.closest('[role="dialog"]')
+    ) {
+      return;
+    }
+    router.push(`/movies/${movie.id}`);
+  };
 
   const renderStars = (rating: number) => {
     return "⭐".repeat(rating) + "☆".repeat(5 - rating);
@@ -41,7 +57,10 @@ export default function MovieCard({
 
   if (viewMode === "small") {
     return (
-      <div className="bg-surface rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
+      <div
+        className="bg-surface rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+        onClick={handleCardClick}
+      >
         <div className="flex gap-4">
           {movie.image && (
             <div className="flex-shrink-0 w-20 h-28 overflow-hidden rounded">
@@ -55,7 +74,7 @@ export default function MovieCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2 mb-2">
               <h3
-                className="text-lg font-bold flex-1 overflow-hidden"
+                className="text-lg font-bold flex-1 overflow-hidden hover:text-blue-400 transition-colors"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
@@ -105,16 +124,21 @@ export default function MovieCard({
     <div className="bg-surface rounded-lg p-6 shadow-lg">
       <div className="flex flex-col md:flex-row gap-6">
         {movie.image && (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 cursor-pointer" onClick={handleCardClick}>
             <img
               src={movie.image}
               alt={movie.title}
-              className="w-full md:w-48 h-64 object-cover rounded-lg"
+              className="w-full md:w-48 h-64 object-cover rounded-lg hover:opacity-90 transition-opacity"
             />
           </div>
         )}
         <div className="flex-1">
-          <h3 className="text-2xl font-bold mb-2">{movie.title}</h3>
+          <h3
+            className="text-2xl font-bold mb-2 cursor-pointer hover:text-blue-400 transition-colors"
+            onClick={handleCardClick}
+          >
+            {movie.title}
+          </h3>
           <div className="mb-4">
             <div className="text-lg mb-1">
               平均評分:{" "}

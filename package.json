@@ -17,7 +17,9 @@
     "db:seed": "node scripts/load-config.js tsx prisma/seed.ts",
     "db:clear": "node scripts/load-config.js tsx prisma/clear-data.ts",
     "db:reset": "node scripts/load-config.js tsx prisma/clear-data.ts && node scripts/load-config.js tsx prisma/seed.ts",
-    "db:generate": "node scripts/load-config.js prisma generate"
+    "db:generate": "node scripts/load-config.js prisma generate",
+    "db:test": "node scripts/load-config.js tsx scripts/test-connection.ts",
+    "db:diagnose": "node scripts/load-config.js tsx scripts/diagnose-connection.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

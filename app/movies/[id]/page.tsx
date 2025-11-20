@@ -1,0 +1,314 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import RatingForm from "@/components/RatingForm";
+
+interface Movie {
+  id: string;
+  title: string;
+  image: string | null;
+  averageRating: number;
+  ratingCount: number;
+  createdAt: string;
+  ratings: Array<{
+    id: string;
+    rating: number;
+    review: string | null;
+    createdAt: string;
+    user: {
+      id: string;
+      name: string;
+      icon: string;
+    };
+  }>;
+}
+
+export default function MoviePage() {
+  const router = useRouter();
+  const params = useParams();
+  const movieId = params.id as string;
+
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editImage, setEditImage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    fetchMovie();
+  }, [movieId]);
+
+  const fetchMovie = async () => {
+    try {
+      const response = await fetch(`/api/movies/${movieId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          router.push("/");
+          return;
+        }
+        throw new Error("Failed to fetch movie");
+      }
+      const data = await response.json();
+      setMovie(data);
+      setEditTitle(data.title);
+      setEditImage(data.image || "");
+    } catch (error) {
+      console.error("Error fetching movie:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editTitle.trim()) {
+      alert("請輸入電影名稱");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/movies/${movieId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          image: editImage.trim() || null,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedMovie = await response.json();
+        setMovie(updatedMovie);
+        setEditing(false);
+      } else {
+        const error = await response.json();
+        alert(error.error || "更新失敗");
+      }
+    } catch (error) {
+      console.error("Error updating movie:", error);
+      alert("更新失敗");
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/movies/${movieId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        router.push("/");
+      } else {
+        const error = await response.json();
+        alert(error.error || "刪除失敗");
+        setDeleting(false);
+        setShowDeleteConfirm(false);
+      }
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      alert("刪除失敗");
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background text-white">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center py-12">載入中...</div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <main className="min-h-screen bg-background text-white">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">找不到這部電影</p>
+            <Link href="/" className="text-blue-400 hover:underline">
+              返回首頁
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-background text-white">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* 返回按鈕 */}
+        <Link
+          href="/"
+          className="inline-flex items-center text-gray-400 hover:text-white mb-6"
+        >
+          ← 返回電影列表
+        </Link>
+
+        {/* 電影標題和圖片 */}
+        <div className="mb-8">
+          {editing ? (
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-2xl font-bold"
+                placeholder="電影名稱"
+              />
+              <input
+                type="text"
+                value={editImage}
+                onChange={(e) => setEditImage(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                placeholder="圖片 URL（可選）"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleUpdate}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                >
+                  保存
+                </button>
+                <button
+                  onClick={() => {
+                    setEditing(false);
+                    setEditTitle(movie.title);
+                    setEditImage(movie.image || "");
+                  }}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-6">
+              {movie.image && (
+                <img
+                  src={movie.image}
+                  alt={movie.title}
+                  className="w-48 h-72 object-cover rounded-lg"
+                />
+              )}
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-400 text-2xl">⭐</span>
+                    <span className="text-xl font-semibold">
+                      {movie.averageRating.toFixed(1)}
+                    </span>
+                    <span className="text-gray-400">
+                      ({movie.ratingCount} 個評分)
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  >
+                    編輯標題
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                  >
+                    刪除電影
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 刪除確認對話框 */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+              <h2 className="text-xl font-bold mb-4">確認刪除</h2>
+              <p className="text-gray-300 mb-6">
+                確定要刪除「{movie.title}」嗎？此操作無法復原，所有相關評分也會被刪除。
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50"
+                >
+                  {deleting ? "刪除中..." : "確認刪除"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleting(false);
+                  }}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-50"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 評分表單 */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">新增評分</h2>
+          <RatingForm movieId={movieId} onSuccess={fetchMovie} />
+        </div>
+
+        {/* 評論列表 */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4">
+            所有評論 ({movie.ratings.length})
+          </h2>
+          {movie.ratings.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              還沒有評論，快來第一個評分吧！
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {movie.ratings.map((rating) => (
+                <div
+                  key={rating.id}
+                  className="bg-gray-800 p-4 rounded-lg border border-gray-700"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{rating.user.icon}</span>
+                      <span className="font-semibold">{rating.user.name}</span>
+                      <span className="text-yellow-400">
+                        {"⭐".repeat(rating.rating)}
+                      </span>
+                      <span className="text-gray-400 text-sm">
+                        {new Date(rating.createdAt).toLocaleDateString("zh-TW")}
+                      </span>
+                    </div>
+                  </div>
+                  {rating.review && (
+                    <p className="text-gray-300 mt-2 whitespace-pre-wrap">
+                      {rating.review}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
