@@ -26,8 +26,10 @@ export async function GET() {
       const ratingsWithScore = ratings.filter((r: any) => r.rating !== null);
       const avgRating =
         ratingsWithScore.length > 0
-          ? ratingsWithScore.reduce((sum: number, r: any) => sum + r.rating, 0) /
-            ratingsWithScore.length
+          ? ratingsWithScore.reduce(
+              (sum: number, r: any) => sum + r.rating,
+              0
+            ) / ratingsWithScore.length
           : 0;
 
       return {
