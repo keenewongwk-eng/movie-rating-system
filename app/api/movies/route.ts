@@ -18,7 +18,7 @@ export async function GET() {
 
     // 計算每部電影的平均評分
     const moviesWithStats = movies.map((movie) => {
-      const ratings = movie.ratings;
+      const ratings = movie.ratings || [];
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
@@ -28,15 +28,15 @@ export async function GET() {
         id: movie.id,
         title: movie.title,
         image: movie.image,
-        createdAt: movie.createdAt,
-        updatedAt: movie.updatedAt,
+        createdAt: movie.createdAt.toISOString(),
+        updatedAt: movie.updatedAt.toISOString(),
         averageRating: Math.round(avgRating * 10) / 10,
         ratingCount: ratings.length,
         ratings: ratings.map((r) => ({
           id: r.id,
           rating: r.rating,
           review: r.review,
-          createdAt: r.createdAt,
+          createdAt: r.createdAt.toISOString(),
           user: {
             id: r.user.id,
             name: r.user.name,
@@ -46,13 +46,12 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(moviesWithStats);
+    // 確保返回數組
+    return NextResponse.json(Array.isArray(moviesWithStats) ? moviesWithStats : []);
   } catch (error) {
     console.error("Error fetching movies:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch movies" },
-      { status: 500 }
-    );
+    // 返回空數組而不是錯誤對象
+    return NextResponse.json([], { status: 500 });
   }
 }
 

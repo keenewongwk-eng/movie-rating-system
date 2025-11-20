@@ -39,10 +39,20 @@ export default function MovieList() {
   const fetchMovies = async () => {
     try {
       const response = await fetch("/api/movies");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setMovies(data);
+      // 確保 data 是數組
+      if (Array.isArray(data)) {
+        setMovies(data);
+      } else {
+        console.error("API returned non-array data:", data);
+        setMovies([]);
+      }
     } catch (error) {
       console.error("Error fetching movies:", error);
+      setMovies([]); // 確保 movies 始終是數組
     } finally {
       setLoading(false);
     }
@@ -52,18 +62,20 @@ export default function MovieList() {
     fetchMovies();
   }, []);
 
-  const sortedMovies = [...movies].sort((a, b) => {
-    let comparison = 0;
+  const sortedMovies = Array.isArray(movies)
+    ? [...movies].sort((a, b) => {
+        let comparison = 0;
 
-    if (sortBy === "rating") {
-      comparison = a.averageRating - b.averageRating;
-    } else if (sortBy === "date") {
-      comparison =
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    }
+        if (sortBy === "rating") {
+          comparison = a.averageRating - b.averageRating;
+        } else if (sortBy === "date") {
+          comparison =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
 
-    return sortOrder === "asc" ? comparison : -comparison;
-  });
+        return sortOrder === "asc" ? comparison : -comparison;
+      })
+    : [];
 
   const handleSortChange = (newSortBy: SortBy) => {
     if (sortBy === newSortBy) {
