@@ -58,14 +58,16 @@ export async function GET() {
     );
   } catch (error: any) {
     // 使用統一的錯誤處理，確保記錄到日誌
-    const errorResponse = handleApiError(error, {
+    // 注意：handleApiError 會自動記錄 500 錯誤到日誌文件
+    handleApiError(error, {
       status: 500,
       message: "Failed to fetch movies",
       route: "/api/movies",
       method: "GET",
     });
     
-    // GET 請求在錯誤時返回空數組而不是錯誤對象
+    // GET 請求在錯誤時返回空數組而不是錯誤對象（為了前端兼容性）
+    // 但錯誤已經被記錄到日誌文件中了
     return NextResponse.json([], { status: 500 });
   }
 }
