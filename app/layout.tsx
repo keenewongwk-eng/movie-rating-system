@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AnimatedBackground from "@/components/AnimatedBackground";
 
 export const metadata: Metadata = {
   title: "小西北影評",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AnimatedBackground />
+        {children}
+      </body>
     </html>
   );
 }

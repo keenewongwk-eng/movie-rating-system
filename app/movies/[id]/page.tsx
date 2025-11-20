@@ -47,6 +47,15 @@ export default function MoviePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // 評分編輯狀態
+  const [editingRatingId, setEditingRatingId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState<number>(5);
+  const [editReview, setEditReview] = useState<string>("");
+  const [showDeleteRatingConfirm, setShowDeleteRatingConfirm] = useState<
+    string | null
+  >(null);
+  const [deletingRatingId, setDeletingRatingId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchMovie();
   }, [movieId]);
@@ -124,6 +133,73 @@ export default function MoviePage() {
       alert("刪除失敗");
       setDeleting(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleEditRating = (rating: Movie["ratings"][0]) => {
+    setEditingRatingId(rating.id);
+    setEditRating(rating.rating);
+    setEditReview(rating.review || "");
+  };
+
+  const handleCancelEditRating = () => {
+    setEditingRatingId(null);
+    setEditRating(5);
+    setEditReview("");
+  };
+
+  const handleUpdateRating = async (ratingId: string) => {
+    if (editRating < 1 || editRating > 5) {
+      alert("評分必須在 1-5 之間");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/ratings/${ratingId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rating: editRating,
+          review: editReview.trim() || null,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchMovie();
+        setEditingRatingId(null);
+        setEditRating(5);
+        setEditReview("");
+      } else {
+        const error = await response.json();
+        alert(error.error || "更新失敗");
+      }
+    } catch (error) {
+      console.error("Error updating rating:", error);
+      alert("更新失敗");
+    }
+  };
+
+  const handleDeleteRating = async (ratingId: string) => {
+    setDeletingRatingId(ratingId);
+    try {
+      const response = await fetch(`/api/ratings/${ratingId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        await fetchMovie();
+        setShowDeleteRatingConfirm(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || "刪除失敗");
+      }
+    } catch (error) {
+      console.error("Error deleting rating:", error);
+      alert("刪除失敗");
+    } finally {
+      setDeletingRatingId(null);
     }
   };
 
@@ -247,7 +323,7 @@ export default function MoviePage() {
           )}
         </div>
 
-        {/* 刪除確認對話框 */}
+        {/* 刪除電影確認對話框 */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-800 p-4 sm:p-6 rounded-lg max-w-md w-full mx-4">
@@ -281,6 +357,41 @@ export default function MoviePage() {
           </div>
         )}
 
+        {/* 刪除評分確認對話框 */}
+        {showDeleteRatingConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-4 sm:p-6 rounded-lg max-w-md w-full mx-4">
+              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+                確認刪除評分
+              </h2>
+              <p className="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6">
+                確定要刪除這個評分嗎？此操作無法復原。
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => handleDeleteRating(showDeleteRatingConfirm)}
+                  disabled={deletingRatingId === showDeleteRatingConfirm}
+                  className="flex-1 px-3 py-2 text-sm sm:text-base bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 transition-colors"
+                >
+                  {deletingRatingId === showDeleteRatingConfirm
+                    ? "刪除中..."
+                    : "確認刪除"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteRatingConfirm(null);
+                    setDeletingRatingId(null);
+                  }}
+                  disabled={deletingRatingId === showDeleteRatingConfirm}
+                  className="flex-1 px-3 py-2 text-sm sm:text-base bg-gray-700 hover:bg-gray-600 rounded-lg disabled:opacity-50 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 評分表單 */}
         <div className="mb-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-3">新增評分</h2>
@@ -303,36 +414,113 @@ export default function MoviePage() {
                   key={rating.id}
                   className="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                      {isImageUrl(rating.user.icon) ? (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
-                          <img
-                            src={rating.user.icon}
-                            alt={rating.user.name}
-                            className="w-full h-full object-cover"
-                          />
+                  {editingRatingId === rating.id ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          評分
+                        </label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setEditRating(star)}
+                              className={`text-xl ${
+                                star <= editRating
+                                  ? "text-yellow-400"
+                                  : "text-gray-600"
+                              } transition-colors`}
+                            >
+                              ⭐
+                            </button>
+                          ))}
                         </div>
-                      ) : (
-                        <span className="text-xl sm:text-2xl">
-                          {rating.user.icon}
-                        </span>
-                      )}
-                      <span className="font-semibold text-sm sm:text-base">
-                        {rating.user.name}
-                      </span>
-                      <span className="text-yellow-400 text-sm sm:text-base">
-                        {"⭐".repeat(rating.rating)}
-                      </span>
-                      <span className="text-gray-400 text-xs sm:text-sm">
-                        {new Date(rating.createdAt).toLocaleDateString("zh-TW")}
-                      </span>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {editRating} / 5 星
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          評語（可選）
+                        </label>
+                        <textarea
+                          value={editReview}
+                          onChange={(e) => setEditReview(e.target.value)}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                          rows={3}
+                          placeholder="寫下你的想法..."
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateRating(rating.id)}
+                          className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                        >
+                          保存
+                        </button>
+                        <button
+                          onClick={handleCancelEditRating}
+                          className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                        >
+                          取消
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  {rating.review && (
-                    <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words">
-                      {rating.review}
-                    </p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          {isImageUrl(rating.user.icon) ? (
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
+                              <img
+                                src={rating.user.icon}
+                                alt={rating.user.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-xl sm:text-2xl">
+                              {rating.user.icon}
+                            </span>
+                          )}
+                          <span className="font-semibold text-sm sm:text-base">
+                            {rating.user.name}
+                          </span>
+                          <span className="text-yellow-400 text-sm sm:text-base">
+                            {"⭐".repeat(rating.rating)}
+                          </span>
+                          <span className="text-gray-400 text-xs sm:text-sm">
+                            {new Date(rating.createdAt).toLocaleDateString(
+                              "zh-TW"
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleEditRating(rating)}
+                            className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                            title="編輯"
+                          >
+                            編輯
+                          </button>
+                          <button
+                            onClick={() =>
+                              setShowDeleteRatingConfirm(rating.id)
+                            }
+                            className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors"
+                            title="刪除"
+                          >
+                            刪除
+                          </button>
+                        </div>
+                      </div>
+                      {rating.review && (
+                        <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words">
+                          {rating.review}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
