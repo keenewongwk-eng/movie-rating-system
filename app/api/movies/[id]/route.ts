@@ -11,8 +11,17 @@ export async function GET(
       where: { id: params.id },
       include: {
         ratings: {
+          where: { parentId: null }, // 只獲取主評論
           include: {
             user: true,
+            replies: {
+              include: {
+                user: true,
+              },
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
           },
           orderBy: {
             createdAt: "desc",
@@ -26,12 +35,13 @@ export async function GET(
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
-    // 計算平均評分
+    // 計算平均評分（只計算主評論的評分）
     const ratings = movie.ratings || [];
+    const ratingsWithScore = ratings.filter((r: any) => r.rating !== null);
     const avgRating =
-      ratings.length > 0
-        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
-          ratings.length
+      ratingsWithScore.length > 0
+        ? ratingsWithScore.reduce((sum: number, r: any) => sum + r.rating, 0) /
+          ratingsWithScore.length
         : 0;
 
     return NextResponse.json({
@@ -41,7 +51,7 @@ export async function GET(
       createdAt: movie.createdAt.toISOString(),
       updatedAt: movie.updatedAt.toISOString(),
       averageRating: Math.round(avgRating * 10) / 10,
-      ratingCount: ratings.length,
+      ratingCount: ratingsWithScore.length,
       ratings: ratings.map((r: any) => ({
         id: r.id,
         rating: r.rating,
@@ -52,6 +62,19 @@ export async function GET(
           name: r.user.name,
           icon: r.user.icon,
         },
+        replies: r.replies
+          ? r.replies.map((reply: any) => ({
+              id: reply.id,
+              rating: reply.rating,
+              review: reply.review,
+              createdAt: reply.createdAt.toISOString(),
+              user: {
+                id: reply.user.id,
+                name: reply.user.name,
+                icon: reply.user.icon,
+              },
+            }))
+          : [],
       })),
       recommenders: movie.recommenders
         ? movie.recommenders.map((r: any) => ({
@@ -80,7 +103,10 @@ export async function PUT(
     const { title, image, recommenderIds } = body;
 
     if (!title) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Title is required" },
+        { status: 400 }
+      );
     }
 
     const updatedMovie = await prisma.movie.update({
@@ -96,8 +122,17 @@ export async function PUT(
       },
       include: {
         ratings: {
+          where: { parentId: null },
           include: {
             user: true,
+            replies: {
+              include: {
+                user: true,
+              },
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
           },
           orderBy: {
             createdAt: "desc",
@@ -107,12 +142,13 @@ export async function PUT(
       },
     });
 
-    // 計算平均評分
+    // 計算平均評分（只計算主評論的評分）
     const ratings = updatedMovie.ratings || [];
+    const ratingsWithScore = ratings.filter((r: any) => r.rating !== null);
     const avgRating =
-      ratings.length > 0
-        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
-          ratings.length
+      ratingsWithScore.length > 0
+        ? ratingsWithScore.reduce((sum: number, r: any) => sum + r.rating, 0) /
+          ratingsWithScore.length
         : 0;
 
     return NextResponse.json({
@@ -122,7 +158,7 @@ export async function PUT(
       createdAt: updatedMovie.createdAt.toISOString(),
       updatedAt: updatedMovie.updatedAt.toISOString(),
       averageRating: Math.round(avgRating * 10) / 10,
-      ratingCount: ratings.length,
+      ratingCount: ratingsWithScore.length,
       ratings: ratings.map((r: any) => ({
         id: r.id,
         rating: r.rating,
@@ -133,6 +169,19 @@ export async function PUT(
           name: r.user.name,
           icon: r.user.icon,
         },
+        replies: r.replies
+          ? r.replies.map((reply: any) => ({
+              id: reply.id,
+              rating: reply.rating,
+              review: reply.review,
+              createdAt: reply.createdAt.toISOString(),
+              user: {
+                id: reply.user.id,
+                name: reply.user.name,
+                icon: reply.user.icon,
+              },
+            }))
+          : [],
       })),
       recommenders: updatedMovie.recommenders
         ? updatedMovie.recommenders.map((r: any) => ({

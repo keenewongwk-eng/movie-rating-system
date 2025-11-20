@@ -8,6 +8,7 @@ export async function GET() {
     const movies = await prisma.movie.findMany({
       include: {
         ratings: {
+          where: { parentId: null }, // 只獲取主評論
           include: {
             user: true,
           },
@@ -19,13 +20,14 @@ export async function GET() {
       },
     });
 
-    // 計算每部電影的平均評分
+    // 計算每部電影的平均評分（只計算主評論）
     const moviesWithStats = movies.map((movie: any) => {
       const ratings = movie.ratings || [];
+      const ratingsWithScore = ratings.filter((r: any) => r.rating !== null);
       const avgRating =
-        ratings.length > 0
-          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
-            ratings.length
+        ratingsWithScore.length > 0
+          ? ratingsWithScore.reduce((sum: number, r: any) => sum + r.rating, 0) /
+            ratingsWithScore.length
           : 0;
 
       return {
@@ -35,7 +37,7 @@ export async function GET() {
         createdAt: movie.createdAt.toISOString(),
         updatedAt: movie.updatedAt.toISOString(),
         averageRating: Math.round(avgRating * 10) / 10,
-        ratingCount: ratings.length,
+        ratingCount: ratingsWithScore.length,
         ratings: ratings.map((r: any) => ({
           id: r.id,
           rating: r.rating,

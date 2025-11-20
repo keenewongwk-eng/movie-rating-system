@@ -14,6 +14,18 @@ const isImageUrl = (icon: string): boolean => {
   );
 };
 
+interface Reply {
+  id: string;
+  rating: number | null;
+  review: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    icon: string;
+  };
+}
+
 interface Movie {
   id: string;
   title: string;
@@ -23,7 +35,7 @@ interface Movie {
   createdAt: string;
   ratings: Array<{
     id: string;
-    rating: number;
+    rating: number | null;
     review: string | null;
     createdAt: string;
     user: {
@@ -31,6 +43,7 @@ interface Movie {
       name: string;
       icon: string;
     };
+    replies: Reply[];
   }>;
   recommenders: Array<{
     id: string;
@@ -63,7 +76,8 @@ export default function MoviePage() {
   const [selectedRecommenderIds, setSelectedRecommenderIds] = useState<
     string[]
   >([]);
-  const [isRecommenderSelectOpen, setIsRecommenderSelectOpen] = useState(false);
+  const [isRecommenderSelectOpen, setIsRecommenderSelectOpen] =
+    useState(false);
 
   // 評分編輯狀態
   const [editingRatingId, setEditingRatingId] = useState<string | null>(null);
@@ -72,7 +86,16 @@ export default function MoviePage() {
   const [showDeleteRatingConfirm, setShowDeleteRatingConfirm] = useState<
     string | null
   >(null);
-  const [deletingRatingId, setDeletingRatingId] = useState<string | null>(null);
+  const [deletingRatingId, setDeletingRatingId] = useState<string | null>(
+    null
+  );
+
+  // 回覆狀態
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyUserId, setReplyUserId] = useState<string>("");
+  const [replyContent, setReplyContent] = useState<string>("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [isReplyUserSelectOpen, setIsReplyUserSelectOpen] = useState(false);
 
   useEffect(() => {
     fetchMovie();
@@ -109,6 +132,9 @@ export default function MoviePage() {
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
+        if (data.length > 0 && !replyUserId) {
+          setReplyUserId(data[0].id);
+        }
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -181,7 +207,7 @@ export default function MoviePage() {
 
   const handleEditRating = (rating: Movie["ratings"][0]) => {
     setEditingRatingId(rating.id);
-    setEditRating(rating.rating);
+    setEditRating(rating.rating || 5);
     setEditReview(rating.review || "");
   };
 
@@ -246,6 +272,56 @@ export default function MoviePage() {
     }
   };
 
+  const handleReply = (ratingId: string) => {
+    setReplyingToId(ratingId);
+    if (users.length > 0 && !replyUserId) {
+      setReplyUserId(users[0].id);
+    }
+  };
+
+  const handleCancelReply = () => {
+    setReplyingToId(null);
+    setReplyContent("");
+  };
+
+  const handleSubmitReply = async (parentId: string) => {
+    if (!replyUserId || !replyContent.trim()) {
+      alert("請選擇用戶並輸入回覆內容");
+      return;
+    }
+
+    setSubmittingReply(true);
+    try {
+      const response = await fetch("/api/ratings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          movieId,
+          userId: replyUserId,
+          review: replyContent.trim(),
+          parentId,
+          rating: null, // 回覆不需要評分
+        }),
+      });
+
+      if (response.ok) {
+        await fetchMovie();
+        setReplyingToId(null);
+        setReplyContent("");
+      } else {
+        const error = await response.json();
+        alert(error.error || "回覆失敗");
+      }
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+      alert("回覆失敗");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background text-white">
@@ -270,6 +346,8 @@ export default function MoviePage() {
       </main>
     );
   }
+
+  const selectedReplyUser = users.find((u) => u.id === replyUserId);
 
   return (
     <main className="min-h-screen bg-background text-white">
@@ -624,10 +702,12 @@ export default function MoviePage() {
                         <span className="font-semibold text-sm sm:text-base">
                           {rating.user.name}
                         </span>
-                        <span className="text-yellow-400 text-sm sm:text-base">
-                          {"★".repeat(rating.rating) +
-                            "☆".repeat(5 - rating.rating)}
-                        </span>
+                        {rating.rating && (
+                          <span className="text-yellow-400 text-sm sm:text-base">
+                            {"★".repeat(rating.rating) +
+                              "☆".repeat(5 - rating.rating)}
+                          </span>
+                        )}
                         <span className="text-gray-400 text-xs sm:text-sm">
                           {new Date(rating.createdAt).toLocaleDateString(
                             "zh-TW"
@@ -636,12 +716,19 @@ export default function MoviePage() {
                       </div>
                       <div className="relative min-h-[2rem]">
                         {rating.review && (
-                          <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words pr-20">
+                          <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words pr-32">
                             {rating.review}
                           </p>
                         )}
                         {/* 按鈕固定在右下角 */}
                         <div className="absolute bottom-0 right-0 flex gap-1">
+                          <button
+                            onClick={() => handleReply(rating.id)}
+                            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                            title="回覆"
+                          >
+                            回覆
+                          </button>
                           <button
                             onClick={() => handleEditRating(rating)}
                             className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
@@ -660,6 +747,171 @@ export default function MoviePage() {
                           </button>
                         </div>
                       </div>
+
+                      {/* 回覆表單 */}
+                      {replyingToId === rating.id && (
+                        <div className="mt-4 pl-8 border-l-2 border-blue-600/50 bg-gray-900/50 p-4 rounded-r-lg">
+                          <h4 className="text-sm font-semibold mb-3 text-blue-400">
+                            回覆 {rating.user.name}
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium mb-2">
+                                選擇用戶
+                              </label>
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIsReplyUserSelectOpen(
+                                      !isReplyUserSelectOpen
+                                    )
+                                  }
+                                  className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-white text-left flex items-center gap-2 text-sm"
+                                >
+                                  {selectedReplyUser ? (
+                                    <>
+                                      {isImageUrl(selectedReplyUser.icon) ? (
+                                        <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-500 flex-shrink-0">
+                                          <img
+                                            src={selectedReplyUser.icon}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                      ) : (
+                                        <span className="text-base leading-none">
+                                          {selectedReplyUser.icon}
+                                        </span>
+                                      )}
+                                      <span className="truncate">
+                                        {selectedReplyUser.name}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-400">
+                                      請選擇用戶
+                                    </span>
+                                  )}
+                                  <span className="ml-auto text-xs text-gray-400">
+                                    ▼
+                                  </span>
+                                </button>
+
+                                {isReplyUserSelectOpen && (
+                                  <div className="absolute top-full left-0 w-full mt-1 bg-surface border border-gray-700 rounded shadow-xl z-50 max-h-40 overflow-y-auto">
+                                    {users.map((user) => (
+                                      <button
+                                        key={user.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setReplyUserId(user.id);
+                                          setIsReplyUserSelectOpen(false);
+                                        }}
+                                        className={`w-full px-2 py-1.5 text-left hover:bg-gray-700 flex items-center gap-2 transition-colors text-sm ${
+                                          user.id === replyUserId
+                                            ? "bg-gray-800"
+                                            : ""
+                                        }`}
+                                      >
+                                        {isImageUrl(user.icon) ? (
+                                          <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-500 flex-shrink-0">
+                                            <img
+                                              src={user.icon}
+                                              alt=""
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        ) : (
+                                          <span className="text-base leading-none">
+                                            {user.icon}
+                                          </span>
+                                        )}
+                                        <span className="truncate">
+                                          {user.name}
+                                        </span>
+                                        {user.id === replyUserId && (
+                                          <span className="ml-auto text-green-500">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-2">
+                                回覆內容
+                              </label>
+                              <textarea
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm resize-none"
+                                rows={3}
+                                placeholder="寫下你的回覆..."
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleSubmitReply(rating.id)}
+                                disabled={submittingReply}
+                                className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 rounded disabled:opacity-50 transition-colors"
+                              >
+                                {submittingReply ? "提交中..." : "提交回覆"}
+                              </button>
+                              <button
+                                onClick={handleCancelReply}
+                                className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                              >
+                                取消
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 回覆列表 */}
+                      {rating.replies && rating.replies.length > 0 && (
+                        <div className="mt-4 pl-8 border-l-2 border-gray-700 space-y-3">
+                          {rating.replies.map((reply) => (
+                            <div
+                              key={reply.id}
+                              className="bg-gray-900/50 p-3 rounded-lg"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                {isImageUrl(reply.user.icon) ? (
+                                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                                    <img
+                                      src={reply.user.icon}
+                                      alt={reply.user.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="text-lg">
+                                    {reply.user.icon}
+                                  </span>
+                                )}
+                                <span className="font-medium text-sm">
+                                  {reply.user.name}
+                                </span>
+                                <span className="text-gray-500 text-xs ml-auto">
+                                  {new Date(
+                                    reply.createdAt
+                                  ).toLocaleDateString("zh-TW")}
+                                </span>
+                              </div>
+                              {reply.review && (
+                                <p className="text-gray-300 text-sm whitespace-pre-wrap break-words">
+                                  {reply.review}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

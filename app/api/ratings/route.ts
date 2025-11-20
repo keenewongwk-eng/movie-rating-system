@@ -35,28 +35,57 @@ export async function POST(request: Request) {
     const body = await request.json();
     movieId = body.movieId;
     userId = body.userId;
-    const { rating, review } = body;
+    const { rating, review, parentId } = body;
 
-    if (!movieId || !userId || !rating) {
+    if (!movieId || !userId) {
       return NextResponse.json(
-        { error: "movieId, userId, and rating are required" },
+        { error: "movieId and userId are required" },
         { status: 400 }
       );
     }
 
-    if (rating < 1 || rating > 5) {
+    // 如果是主評論（沒有 parentId），rating 必須存在
+    if (!parentId && !rating) {
+      return NextResponse.json(
+        { error: "Rating is required for main comments" },
+        { status: 400 }
+      );
+    }
+
+    // 如果提供了 rating，驗證範圍
+    if (rating && (rating < 1 || rating > 5)) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
       );
     }
 
+    // 如果是主評論，檢查用戶是否已經評分過這部電影
+    if (!parentId) {
+      const existingRating = await prisma.rating.findFirst({
+        where: {
+          movieId,
+          userId,
+          parentId: null,
+        },
+      });
+
+      if (existingRating) {
+        logger.warn("User already rated this movie", { movieId, userId });
+        return NextResponse.json(
+          { error: "You have already rated this movie" },
+          { status: 409 }
+        );
+      }
+    }
+
     const newRating = await prisma.rating.create({
       data: {
         movieId,
         userId,
-        rating,
+        rating: rating || null,
         review: review || null,
+        parentId: parentId || null,
       },
       include: {
         movie: true,
@@ -64,23 +93,14 @@ export async function POST(request: Request) {
       },
     });
 
-    logger.info("Rating created successfully", {
+    logger.info("Rating/Reply created successfully", {
       ratingId: newRating.id,
       movieId,
       userId,
+      isReply: !!parentId,
     });
     return NextResponse.json(newRating, { status: 201 });
   } catch (error: any) {
-    if (error.code === "P2002") {
-      logger.warn("User already rated this movie", {
-        movieId: movieId || "unknown",
-        userId: userId || "unknown",
-      });
-      return NextResponse.json(
-        { error: "You have already rated this movie" },
-        { status: 409 }
-      );
-    }
     return handleApiError(error, {
       status: 500,
       message: "Failed to create rating",
