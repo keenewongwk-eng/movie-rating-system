@@ -114,12 +114,8 @@ export const logger = {
       data ? JSON.stringify(data, null, 2) : undefined
     );
 
-    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      console.warn(
-        "[WARN]",
-        message,
-        data ? JSON.stringify(data, null, 2) : ""
-      );
+    if (IS_SERVERLESS) {
+      console.warn("[WARN]", message, data ? JSON.stringify(data, null, 2) : "");
     } else {
       writeLog(ERROR_LOG_FILE, logMessage);
       console.warn(logMessage.trim());
