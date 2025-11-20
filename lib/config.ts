@@ -33,15 +33,15 @@ function loadConfig(): Config {
     if (fs.existsSync(examplePath)) {
       throw new Error(
         `❌ config.json not found!\n` +
-        `Please copy config.json.example to config.json and update the values.\n` +
-        `Example: cp config.json.example config.json`
+          `Please copy config.json.example to config.json and update the values.\n` +
+          `Example: cp config.json.example config.json`
       );
     } else {
       throw new Error(
         `❌ config.json not found and DATABASE_URL environment variable is not set!\n` +
-        `Please either:\n` +
-        `1. Create config.json with your database configuration, or\n` +
-        `2. Set DATABASE_URL environment variable`
+          `Please either:\n` +
+          `1. Create config.json with your database configuration, or\n` +
+          `2. Set DATABASE_URL environment variable`
       );
     }
   }

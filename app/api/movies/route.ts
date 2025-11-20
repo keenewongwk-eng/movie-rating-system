@@ -55,9 +55,32 @@ export async function GET() {
     return NextResponse.json(
       Array.isArray(moviesWithStats) ? moviesWithStats : []
     );
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error fetching movies", error);
-    // 返回空數組而不是錯誤對象
+    
+    // 在生產環境中提供更詳細的錯誤信息
+    const errorMessage = error?.message || "Unknown error";
+    const errorCode = error?.code || "UNKNOWN";
+    
+    console.error("Movies API Error:", {
+      message: errorMessage,
+      code: errorCode,
+      stack: error?.stack,
+    });
+    
+    // 返回錯誤信息以便調試（開發環境）或空數組（生產環境）
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json(
+        { 
+          error: "Failed to fetch movies", 
+          details: errorMessage,
+          code: errorCode 
+        },
+        { status: 500 }
+      );
+    }
+    
+    // 生產環境返回空數組，但記錄詳細錯誤
     return NextResponse.json([], { status: 500 });
   }
 }
