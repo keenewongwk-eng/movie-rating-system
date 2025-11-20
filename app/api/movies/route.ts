@@ -58,9 +58,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let title: string | undefined;
   try {
     const body = await request.json();
-    const { title, image } = body;
+    title = body.title;
+    const { image } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -78,7 +80,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     logger.error("Error creating movie", error);
     if (error.code === "P2002") {
-      logger.warn("Movie already exists", { title: body.title });
+      logger.warn("Movie already exists", { title: title || "unknown" });
       return NextResponse.json(
         { error: "Movie already exists" },
         { status: 409 }
