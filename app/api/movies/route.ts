@@ -22,7 +22,8 @@ export async function GET() {
       const ratings = movie.ratings || [];
       const avgRating =
         ratings.length > 0
-          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+            ratings.length
           : 0;
 
       return {
@@ -48,8 +49,12 @@ export async function GET() {
     });
 
     // 確保返回數組
-    logger.info("Movies fetched successfully", { count: moviesWithStats.length });
-    return NextResponse.json(Array.isArray(moviesWithStats) ? moviesWithStats : []);
+    logger.info("Movies fetched successfully", {
+      count: moviesWithStats.length,
+    });
+    return NextResponse.json(
+      Array.isArray(moviesWithStats) ? moviesWithStats : []
+    );
   } catch (error) {
     logger.error("Error fetching movies", error);
     // 返回空數組而不是錯誤對象
@@ -75,7 +80,10 @@ export async function POST(request: Request) {
       },
     });
 
-    logger.info("Movie created successfully", { movieId: movie.id, title: movie.title });
+    logger.info("Movie created successfully", {
+      movieId: movie.id,
+      title: movie.title,
+    });
     return NextResponse.json(movie, { status: 201 });
   } catch (error: any) {
     logger.error("Error creating movie", error);
