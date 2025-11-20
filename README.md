@@ -28,17 +28,30 @@ npm install
 
 ### 2. 設置數據庫
 
-創建 PostgreSQL 數據庫，然後設置環境變數：
+#### 本地開發（使用 localhost）
+
+創建 `.env` 文件，填入本地數據庫連接字符串：
 
 ```bash
-cp .env.example .env
+# 創建 .env 文件
+echo 'DATABASE_URL="postgresql://postgres:p@ssw0rd@localhost:5433/movie_ratings"' > .env
 ```
 
-編輯 `.env` 文件，填入你的數據庫連接字符串：
+或者手動創建 `.env` 文件：
+```
+DATABASE_URL="postgresql://postgres:p@ssw0rd@localhost:5433/movie_ratings"
+```
 
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/movie_ratings"
-```
+#### 生產環境（使用 Supabase 或其他雲數據庫）
+
+⚠️ **重要**: 如果要在 Vercel 部署，必須使用遠程數據庫（不能使用 localhost）
+
+推薦使用 Supabase（免費）：
+1. 前往 https://supabase.com 創建項目
+2. 獲取數據庫連接字符串
+3. 在 Vercel 環境變數中設置 `DATABASE_URL`
+
+詳細步驟請查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ### 3. 初始化數據庫
 
@@ -62,6 +75,8 @@ npm run dev
 打開 [http://localhost:3000](http://localhost:3000) 查看應用。
 
 ## 部署
+
+📖 **詳細部署指南**: 請查看 [DEPLOYMENT.md](./DEPLOYMENT.md) 獲取完整的 Supabase 數據庫設置步驟。
 
 ### 方法 1: Vercel 部署（推薦）
 
