@@ -63,29 +63,62 @@ npm run dev
 
 ## 部署
 
-### Vercel 部署
+### 方法 1: Vercel 部署（推薦）
 
-1. 將代碼推送到 GitHub
-2. 在 [Vercel](https://vercel.com) 導入項目
-3. 添加環境變數 `DATABASE_URL`
-4. 部署！
+1. **將代碼推送到 GitHub**
 
-### Railway 部署
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **在 Vercel 部署**
+
+   - 前往 [Vercel](https://vercel.com)
+   - 使用 GitHub 帳號登入
+   - 點擊 "Add New Project"
+   - 選擇 `keenewongwk-eng/movie-rating-system` 倉庫
+   - 點擊 "Import"
+
+3. **配置環境變數**
+
+   - 在項目設置中添加環境變數：
+     - `DATABASE_URL`: 你的 PostgreSQL 數據庫連接字符串
+   - 點擊 "Deploy"
+
+4. **數據庫初始化**
+   部署完成後，在 Vercel 的項目設置中：
+
+   - 進入 "Settings" > "Build & Development Settings"
+   - 添加 Build Command: `prisma generate && next build`
+   - 或者使用 Vercel CLI 運行：
+     ```bash
+     vercel env pull .env.local
+     npx prisma db push
+     npm run db:seed  # 可選
+     ```
+
+5. **完成！**
+   Vercel 會自動為你提供一個 URL，例如：`https://movie-rating-system.vercel.app`
+
+### 方法 2: Railway 部署
 
 1. 在 [Railway](https://railway.app) 創建新項目
 2. 添加 PostgreSQL 服務
-3. 連接 GitHub 倉庫
+3. 連接 GitHub 倉庫 `keenewongwk-eng/movie-rating-system`
 4. 設置環境變數 `DATABASE_URL`（Railway 會自動提供）
 5. 部署！
 
-### 數據庫設置
+### 方法 3: GitHub Pages（僅靜態版本）
 
-部署後，需要在生產環境運行：
+⚠️ **注意**: GitHub Pages 不支援 Next.js API 路由和服務器端功能。如果需要完整功能，請使用 Vercel 或 Railway。
 
-```bash
-npx prisma db push
-npm run db:seed  # 可選
-```
+如果需要靜態導出：
+
+1. 修改 `next.config.js` 添加 `output: 'export'`
+2. 移除所有 API 路由
+3. 使用靜態數據或外部 API
 
 ## 項目結構
 
