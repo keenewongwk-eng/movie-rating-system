@@ -27,6 +27,7 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [rating, setRating] = useState<number>(5);
+  const [hoverRating, setHoverRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
@@ -204,21 +205,26 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
 
       <div>
         <label className="block text-sm font-medium mb-2">評分</label>
-        <div className="flex gap-2">
+        <div className="flex gap-2" onMouseLeave={() => setHoverRating(0)}>
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              className={`text-3xl ${
-                star <= rating ? "text-yellow-400" : "text-gray-600"
-              } transition-colors`}
+              onMouseEnter={() => setHoverRating(star)}
+              className={`text-3xl transition-all transform hover:scale-110 ${
+                star <= (hoverRating || rating)
+                  ? "text-yellow-400"
+                  : "text-gray-600"
+              }`}
             >
-              ⭐
+              {star <= (hoverRating || rating) ? "★" : "☆"}
             </button>
           ))}
         </div>
-        <div className="text-sm text-gray-400 mt-1">{rating} / 5 星</div>
+        <div className="text-sm text-gray-400 mt-1">
+          {hoverRating || rating} / 5 星
+        </div>
       </div>
 
       <div>

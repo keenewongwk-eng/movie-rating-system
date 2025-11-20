@@ -61,8 +61,11 @@ export default function MovieCard({
   };
 
   const renderStars = (rating: number) => {
-    return "⭐".repeat(rating) + "☆".repeat(5 - rating);
+    return "★".repeat(rating) + "☆".repeat(5 - rating);
   };
+
+  // 判斷是否是爛片（平均分低於 3 分）
+  const isBadMovie = movie.averageRating > 0 && movie.averageRating < 3;
 
   // 渲染最近評分的用戶圖標（最多顯示 3 個）
   const renderRecentRaters = () => {
@@ -104,12 +107,19 @@ export default function MovieCard({
         >
           <div className="flex gap-4">
             {movie.image && (
-              <div className="flex-shrink-0 w-20 aspect-[2/3] overflow-hidden rounded">
-                <img
-                  src={movie.image}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                />
+              <div className="flex-shrink-0 w-20 relative">
+                <div className="aspect-[2/3] overflow-hidden rounded">
+                  <img
+                    src={movie.image}
+                    alt={movie.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {isBadMovie && (
+                  <div className="absolute -top-1.5 -left-1.5 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm opacity-95 z-10 border border-white/30 shadow-sm rotate-[-12deg]">
+                    伏到PK
+                  </div>
+                )}
               </div>
             )}
             <div className="flex-1 min-w-0">
@@ -194,7 +204,7 @@ export default function MovieCard({
       <div className="flex flex-col md:flex-row gap-6">
         {movie.image && (
           <div
-            className="flex-shrink-0 w-full md:w-48 cursor-pointer"
+            className="flex-shrink-0 w-full md:w-48 cursor-pointer relative"
             onClick={handleCardClick}
           >
             <div className="aspect-[2/3] overflow-hidden rounded-lg">
@@ -204,6 +214,11 @@ export default function MovieCard({
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity"
               />
             </div>
+            {isBadMovie && (
+              <div className="absolute -top-2 -left-2 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-sm opacity-95 z-10 border-2 border-white shadow-md rotate-[-12deg]">
+                伏到PK
+              </div>
+            )}
           </div>
         )}
         <div className="flex-1">
