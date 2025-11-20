@@ -1,6 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+
+// 判斷是否為圖片 URL（base64 或 http/https）
+const isImageUrl = (icon: string): boolean => {
+  return (
+    icon.startsWith("data:image/") ||
+    icon.startsWith("http://") ||
+    icon.startsWith("https://")
+  );
+};
 
 interface User {
   id: string;
@@ -131,7 +141,7 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
           >
             {users.map((user) => (
               <option key={user.id} value={user.id}>
-                {user.icon} {user.name}
+                {isImageUrl(user.icon) ? "🖼️" : user.icon} {user.name}
               </option>
             ))}
           </select>

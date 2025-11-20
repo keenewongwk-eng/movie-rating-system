@@ -4,6 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import RatingForm from "./RatingForm";
 
+// 判斷是否為圖片 URL（base64 或 http/https）
+const isImageUrl = (icon: string): boolean => {
+  return (
+    icon.startsWith("data:image/") ||
+    icon.startsWith("http://") ||
+    icon.startsWith("https://")
+  );
+};
+
 interface Movie {
   id: string;
   title: string;
@@ -200,7 +209,17 @@ export default function MovieCard({
                   className="bg-background rounded-lg p-4 border border-gray-800"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{rating.user.icon}</span>
+                    {isImageUrl(rating.user.icon) ? (
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                        <img
+                          src={rating.user.icon}
+                          alt={rating.user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-2xl">{rating.user.icon}</span>
+                    )}
                     <span className="font-medium">{rating.user.name}</span>
                     <span className="text-yellow-400 ml-auto">
                       {renderStars(rating.rating)}

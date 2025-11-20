@@ -5,6 +5,15 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import RatingForm from "@/components/RatingForm";
 
+// 判斷是否為圖片 URL（base64 或 http/https）
+const isImageUrl = (icon: string): boolean => {
+  return (
+    icon.startsWith("data:image/") ||
+    icon.startsWith("http://") ||
+    icon.startsWith("https://")
+  );
+};
+
 interface Movie {
   id: string;
   title: string;
@@ -206,7 +215,9 @@ export default function MoviePage() {
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3">
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="text-yellow-400 text-lg sm:text-xl">⭐</span>
+                    <span className="text-yellow-400 text-lg sm:text-xl">
+                      ⭐
+                    </span>
                     <span className="text-lg sm:text-xl font-semibold">
                       {movie.averageRating > 0
                         ? movie.averageRating.toFixed(1)
@@ -240,9 +251,12 @@ export default function MoviePage() {
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-800 p-4 sm:p-6 rounded-lg max-w-md w-full mx-4">
-              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">確認刪除</h2>
+              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+                確認刪除
+              </h2>
               <p className="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6 break-words">
-                確定要刪除「{movie.title}」嗎？此操作無法復原，所有相關評分也會被刪除。
+                確定要刪除「{movie.title}
+                」嗎？此操作無法復原，所有相關評分也會被刪除。
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
@@ -291,8 +305,22 @@ export default function MoviePage() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                      <span className="text-xl sm:text-2xl">{rating.user.icon}</span>
-                      <span className="font-semibold text-sm sm:text-base">{rating.user.name}</span>
+                      {isImageUrl(rating.user.icon) ? (
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
+                          <img
+                            src={rating.user.icon}
+                            alt={rating.user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-xl sm:text-2xl">
+                          {rating.user.icon}
+                        </span>
+                      )}
+                      <span className="font-semibold text-sm sm:text-base">
+                        {rating.user.name}
+                      </span>
                       <span className="text-yellow-400 text-sm sm:text-base">
                         {"⭐".repeat(rating.rating)}
                       </span>
@@ -315,4 +343,3 @@ export default function MoviePage() {
     </main>
   );
 }
-

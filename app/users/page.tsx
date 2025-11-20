@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 interface User {
@@ -11,12 +11,23 @@ interface User {
   updatedAt: string;
 }
 
+// 判斷是否為圖片 URL（base64 或 http/https）
+const isImageUrl = (icon: string): boolean => {
+  return (
+    icon.startsWith("data:image/") ||
+    icon.startsWith("http://") ||
+    icon.startsWith("https://")
+  );
+};
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editIcon, setEditIcon] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -47,6 +58,50 @@ export default function UsersPage() {
     setEditingUserId(null);
     setEditName("");
     setEditIcon("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 驗證文件類型
+    if (!file.type.startsWith("image/")) {
+      alert("請選擇圖片文件");
+      return;
+    }
+
+    // 驗證文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert("圖片大小不能超過 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setEditIcon(data.url);
+      } else {
+        const error = await response.json();
+        alert(error.error || "上傳失敗");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("上傳失敗");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleUpdate = async (userId: string) => {
@@ -83,7 +138,11 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (userId: string, userName: string) => {
-    if (!confirm(`確定要刪除用戶「${userName}」嗎？此操作無法復原，所有相關評分也會被刪除。`)) {
+    if (
+      !confirm(
+        `確定要刪除用戶「${userName}」嗎？此操作無法復原，所有相關評分也會被刪除。`
+      )
+    ) {
       return;
     }
 
@@ -162,23 +221,61 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        選擇圖示
+                        個人資料圖片
                       </label>
-                      <div className="flex gap-2 flex-wrap">
-                        {commonIcons.map((icon) => (
-                          <button
-                            key={icon}
-                            type="button"
-                            onClick={() => setEditIcon(icon)}
-                            className={`text-xl sm:text-2xl p-2 rounded-lg border-2 transition-colors ${
-                              editIcon === icon
-                                ? "border-yellow-400 bg-yellow-400/20"
-                                : "border-gray-700 hover:border-gray-600"
-                            }`}
-                          >
-                            {icon}
-                          </button>
-                        ))}
+
+                      {/* 當前選擇的圖片預覽 */}
+                      {editIcon && isImageUrl(editIcon) && (
+                        <div className="mb-3 flex justify-center">
+                          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700">
+                            <img
+                              src={editIcon}
+                              alt="預覽"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 上傳圖片按鈕 */}
+                      <div className="mb-3">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id={`file-input-${user.id}`}
+                        />
+                        <label
+                          htmlFor={`file-input-${user.id}`}
+                          className="block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm text-center cursor-pointer hover:bg-gray-700 transition-colors"
+                        >
+                          {uploading ? "上傳中..." : "上傳圖片 (1:1)"}
+                        </label>
+                      </div>
+
+                      {/* Emoji 選擇 */}
+                      <div className="mb-2">
+                        <label className="block text-xs text-gray-400 mb-2">
+                          或選擇 Emoji
+                        </label>
+                        <div className="flex gap-2 flex-wrap">
+                          {commonIcons.map((icon) => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => setEditIcon(icon)}
+                              className={`text-xl sm:text-2xl p-2 rounded-lg border-2 transition-colors ${
+                                editIcon === icon && !isImageUrl(editIcon)
+                                  ? "border-yellow-400 bg-yellow-400/20"
+                                  : "border-gray-700 hover:border-gray-600"
+                              }`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -199,15 +296,28 @@ export default function UsersPage() {
                 ) : (
                   <>
                     <div className="text-center mb-4">
-                      <div className="text-4xl sm:text-5xl mb-2">
-                        {user.icon}
+                      <div className="flex justify-center mb-2">
+                        {isImageUrl(user.icon) ? (
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-gray-700">
+                            <img
+                              src={user.icon}
+                              alt={user.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="text-4xl sm:text-5xl">
+                            {user.icon}
+                          </div>
+                        )}
                       </div>
                       <h3 className="text-lg sm:text-xl font-bold break-words">
                         {user.name}
                       </h3>
                     </div>
                     <div className="text-xs sm:text-sm text-gray-400 mb-4 text-center">
-                      創建於 {new Date(user.createdAt).toLocaleDateString("zh-TW")}
+                      創建於{" "}
+                      {new Date(user.createdAt).toLocaleDateString("zh-TW")}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -233,4 +343,3 @@ export default function UsersPage() {
     </main>
   );
 }
-
