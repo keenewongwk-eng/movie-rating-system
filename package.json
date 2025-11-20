@@ -12,7 +12,9 @@
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:clear": "tsx prisma/clear-data.ts",
+    "db:reset": "tsx prisma/clear-data.ts && tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
