@@ -7,7 +7,9 @@ const configPath = path.join(__dirname, "..", "config.json");
 
 if (!fs.existsSync(configPath)) {
   console.error("❌ config.json not found!");
-  console.error("Please copy config.json.example to config.json and update the values.");
+  console.error(
+    "Please copy config.json.example to config.json and update the values."
+  );
   process.exit(1);
 }
 
