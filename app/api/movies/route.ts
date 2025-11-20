@@ -65,7 +65,7 @@ export async function GET() {
       route: "/api/movies",
       method: "GET",
     });
-    
+
     // GET 請求在錯誤時返回空數組而不是錯誤對象（為了前端兼容性）
     // 錯誤已經被記錄（Vercel 控制台或本地日誌文件）
     return NextResponse.json([], { status: 500 });

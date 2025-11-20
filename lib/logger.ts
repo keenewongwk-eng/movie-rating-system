@@ -1,13 +1,25 @@
 import fs from "fs";
 import path from "path";
 
+// 檢查是否在 Vercel 或其他無服務器環境
+const IS_VERCEL = !!process.env.VERCEL;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_SERVERLESS = IS_VERCEL || IS_PRODUCTION;
+
 const LOG_DIR = path.join(process.cwd(), "logs");
 const ERROR_LOG_FILE = path.join(LOG_DIR, "error.log");
 const INFO_LOG_FILE = path.join(LOG_DIR, "info.log");
 
-// 確保日誌目錄存在
-if (!fs.existsSync(LOG_DIR)) {
-  fs.mkdirSync(LOG_DIR, { recursive: true });
+// 只在本地開發環境中創建日誌目錄
+if (!IS_SERVERLESS) {
+  try {
+    if (!fs.existsSync(LOG_DIR)) {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
+  } catch (err) {
+    // 如果無法創建目錄，只輸出警告，不影響運行
+    console.warn("Failed to create logs directory:", err);
+  }
 }
 
 // 格式化時間戳
@@ -36,24 +48,19 @@ function formatLogMessage(level: string, message: string, error?: any): string {
 
 // 寫入日誌文件（僅在本地文件系統可用時）
 function writeLog(filePath: string, message: string) {
+  // 在無服務器環境中，跳過文件寫入
+  if (IS_SERVERLESS) {
+    return;
+  }
+  
   try {
-    // 檢查是否在 Vercel 或其他無服務器環境
-    // Vercel 使用 /tmp 目錄，但我們使用 logs/ 目錄
-    // 在生產環境中，優先使用控制台輸出
-    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      // 在 Vercel 環境中，只輸出到控制台
-      // Vercel 會自動捕獲這些日誌
-      return;
-    }
-    
     // 本地開發環境：寫入文件
     if (fs.existsSync(LOG_DIR)) {
       fs.appendFileSync(filePath, message, "utf8");
     }
   } catch (err) {
-    // 如果寫入失敗，至少輸出到控制台
-    // 這在 Vercel 環境中很重要
-    console.error("Failed to write to log file:", err);
+    // 如果寫入失敗，靜默處理（不會影響應用運行）
+    // 錯誤已經輸出到控制台了
   }
 }
 
@@ -63,10 +70,8 @@ export const logger = {
   error: (message: string, error?: any) => {
     const logMessage = formatLogMessage("ERROR", message, error);
     
-    // 在 Vercel 環境中，確保輸出到控制台（會被 Vercel 捕獲）
-    // 在本地環境中，同時寫入文件
-    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      // Vercel 環境：詳細輸出到控制台
+    // 在無服務器環境中，詳細輸出到控制台（會被 Vercel 捕獲）
+    if (IS_SERVERLESS) {
       console.error("=".repeat(80));
       console.error("[ERROR]", message);
       if (error) {
@@ -93,7 +98,7 @@ export const logger = {
       data ? JSON.stringify(data, null, 2) : undefined
     );
     
-    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+    if (IS_SERVERLESS) {
       console.log("[INFO]", message, data ? JSON.stringify(data, null, 2) : "");
     } else {
       writeLog(INFO_LOG_FILE, logMessage);
@@ -108,9 +113,13 @@ export const logger = {
       message,
       data ? JSON.stringify(data, null, 2) : undefined
     );
-    
+
     if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      console.warn("[WARN]", message, data ? JSON.stringify(data, null, 2) : "");
+      console.warn(
+        "[WARN]",
+        message,
+        data ? JSON.stringify(data, null, 2) : ""
+      );
     } else {
       writeLog(ERROR_LOG_FILE, logMessage);
       console.warn(logMessage.trim());
@@ -152,4 +161,3 @@ export function cleanupOldLogs(daysToKeep: number = 7) {
     logger.error("Failed to cleanup old logs", error);
   }
 }
-

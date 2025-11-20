@@ -11,10 +11,12 @@
 所有錯誤日誌都在 **Vercel Dashboard** 中：
 
 1. **訪問 Vercel Dashboard**
+
    - https://vercel.com/dashboard
    - 登入你的帳號
 
 2. **查看項目日誌**
+
    - 進入 `movie-rating-system` 項目
    - 點擊 **"Deployments"** 標籤
    - 點擊最新的部署
@@ -37,11 +39,13 @@ Stack trace: ...
 ## 本地開發 vs 生產環境
 
 ### 本地開發
+
 - ✅ 日誌寫入 `logs/error.log` 文件
 - ✅ 同時輸出到控制台
 - ✅ 可以查看本地文件
 
 ### Vercel 生產環境
+
 - ✅ 日誌輸出到 Vercel 控制台（Function Logs）
 - ❌ **不會**寫入本地文件（文件系統不可用）
 - ✅ 所有 `console.error()` 和 `logger.error()` 都會被 Vercel 捕獲
@@ -68,6 +72,7 @@ vercel logs movie-rating-system
 ### 方法 3: 健康檢查端點
 
 訪問：
+
 ```
 https://movie-rating-system-gamma.vercel.app/api/health
 ```
@@ -91,6 +96,7 @@ https://movie-rating-system-gamma.vercel.app/api/health
 ### 步驟 3: 測試 API 端點
 
 直接訪問：
+
 ```
 https://movie-rating-system-gamma.vercel.app/api/movies
 ```
@@ -100,6 +106,7 @@ https://movie-rating-system-gamma.vercel.app/api/movies
 ### 步驟 4: 使用健康檢查
 
 訪問：
+
 ```
 https://movie-rating-system-gamma.vercel.app/api/health
 ```
@@ -125,4 +132,3 @@ A: Vercel 免費計劃保存 30 天的日誌。付費計劃保存更長時間。
 - ✅ **本地開發**：查看 `logs/error.log`
 - ✅ **生產環境（Vercel）**：查看 Vercel Dashboard > Function Logs
 - ✅ 所有錯誤都會被記錄，只是位置不同
-
