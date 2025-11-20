@@ -1,0 +1,177 @@
+"use client";
+
+import { useState } from "react";
+import RatingForm from "./RatingForm";
+
+interface Movie {
+  id: string;
+  title: string;
+  image: string | null;
+  averageRating: number;
+  ratingCount: number;
+  ratings: Array<{
+    id: string;
+    rating: number;
+    review: string | null;
+    createdAt: string;
+    user: {
+      id: string;
+      name: string;
+      icon: string;
+    };
+  }>;
+}
+
+interface MovieCardProps {
+  movie: Movie;
+  onUpdate: () => void;
+  viewMode?: "small" | "large";
+}
+
+export default function MovieCard({
+  movie,
+  onUpdate,
+  viewMode = "large",
+}: MovieCardProps) {
+  const [showRatingForm, setShowRatingForm] = useState(false);
+
+  const renderStars = (rating: number) => {
+    return "⭐".repeat(rating) + "☆".repeat(5 - rating);
+  };
+
+  if (viewMode === "small") {
+    return (
+      <div className="bg-surface rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
+        <div className="flex gap-4">
+          {movie.image && (
+            <div className="flex-shrink-0 w-20 h-28 overflow-hidden rounded">
+              <img
+                src={movie.image}
+                alt={movie.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2 mb-2">
+              <h3
+                className="text-lg font-bold flex-1 overflow-hidden"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+                title={movie.title}
+              >
+                {movie.title}
+              </h3>
+            </div>
+            <div className="mb-3">
+              <div className="text-sm mb-1">
+                平均:{" "}
+                {movie.averageRating > 0
+                  ? movie.averageRating.toFixed(1)
+                  : "無"}
+                /5.0
+              </div>
+              <div className="text-xs text-gray-400">
+                {movie.ratingCount} 個評分
+              </div>
+            </div>
+            <button
+              onClick={() => setShowRatingForm(!showRatingForm)}
+              className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-xs"
+            >
+              {showRatingForm ? "取消" : "評分"}
+            </button>
+            {showRatingForm && (
+              <div className="mt-3">
+                <RatingForm
+                  movieId={movie.id}
+                  onSuccess={() => {
+                    setShowRatingForm(false);
+                    onUpdate();
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-surface rounded-lg p-6 shadow-lg">
+      <div className="flex flex-col md:flex-row gap-6">
+        {movie.image && (
+          <div className="flex-shrink-0">
+            <img
+              src={movie.image}
+              alt={movie.title}
+              className="w-full md:w-48 h-64 object-cover rounded-lg"
+            />
+          </div>
+        )}
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold mb-2">{movie.title}</h3>
+          <div className="mb-4">
+            <div className="text-lg mb-1">
+              平均評分:{" "}
+              {movie.averageRating > 0 ? movie.averageRating.toFixed(1) : "無"}{" "}
+              / 5.0
+            </div>
+            <div className="text-sm text-gray-400">
+              {movie.ratingCount} 個評分
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowRatingForm(!showRatingForm)}
+            className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm"
+          >
+            {showRatingForm ? "取消評分" : "新增評分"}
+          </button>
+
+          {showRatingForm && (
+            <RatingForm
+              movieId={movie.id}
+              onSuccess={() => {
+                setShowRatingForm(false);
+                onUpdate();
+              }}
+            />
+          )}
+
+          {movie.ratings.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h4 className="font-semibold text-lg">評分記錄</h4>
+              {movie.ratings.map((rating) => (
+                <div
+                  key={rating.id}
+                  className="bg-background rounded-lg p-4 border border-gray-800"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">{rating.user.icon}</span>
+                    <span className="font-medium">{rating.user.name}</span>
+                    <span className="text-yellow-400 ml-auto">
+                      {renderStars(rating.rating)}
+                    </span>
+                  </div>
+                  {rating.review && (
+                    <p className="text-gray-300 text-sm mt-2">
+                      {rating.review}
+                    </p>
+                  )}
+                  <div className="text-xs text-gray-500 mt-2">
+                    {new Date(rating.createdAt).toLocaleString("zh-TW")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

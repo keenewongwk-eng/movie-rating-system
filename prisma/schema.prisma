@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ratings   Rating[]
+
+  @@map("movies")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String   // emoji 圖示
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ratings   Rating[]
+
+  @@unique([name])
+  @@map("users")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  movieId   String
+  userId    String
+  rating    Int      // 1-5 星評分
+  review    String?  // 評語（可選）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, userId]) // 每個用戶對每部電影只能評分一次
+  @@index([movieId])
+  @@index([userId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("ratings")
+}
+
