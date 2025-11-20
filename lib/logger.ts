@@ -34,14 +34,26 @@ function formatLogMessage(level: string, message: string, error?: any): string {
   return logMessage + "\n";
 }
 
-// 寫入日誌文件
+// 寫入日誌文件（僅在本地文件系統可用時）
 function writeLog(filePath: string, message: string) {
   try {
-    fs.appendFileSync(filePath, message, "utf8");
+    // 檢查是否在 Vercel 或其他無服務器環境
+    // Vercel 使用 /tmp 目錄，但我們使用 logs/ 目錄
+    // 在生產環境中，優先使用控制台輸出
+    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+      // 在 Vercel 環境中，只輸出到控制台
+      // Vercel 會自動捕獲這些日誌
+      return;
+    }
+    
+    // 本地開發環境：寫入文件
+    if (fs.existsSync(LOG_DIR)) {
+      fs.appendFileSync(filePath, message, "utf8");
+    }
   } catch (err) {
     // 如果寫入失敗，至少輸出到控制台
+    // 這在 Vercel 環境中很重要
     console.error("Failed to write to log file:", err);
-    console.error("Original log message:", message);
   }
 }
 
@@ -50,9 +62,27 @@ export const logger = {
   // 記錄錯誤
   error: (message: string, error?: any) => {
     const logMessage = formatLogMessage("ERROR", message, error);
-    writeLog(ERROR_LOG_FILE, logMessage);
-    // 同時輸出到控制台
-    console.error(logMessage.trim());
+    
+    // 在 Vercel 環境中，確保輸出到控制台（會被 Vercel 捕獲）
+    // 在本地環境中，同時寫入文件
+    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+      // Vercel 環境：詳細輸出到控制台
+      console.error("=".repeat(80));
+      console.error("[ERROR]", message);
+      if (error) {
+        console.error("Error details:", error);
+        if (error instanceof Error && error.stack) {
+          console.error("Stack trace:", error.stack);
+        } else if (typeof error === "object") {
+          console.error("Error object:", JSON.stringify(error, null, 2));
+        }
+      }
+      console.error("=".repeat(80));
+    } else {
+      // 本地環境：寫入文件並輸出到控制台
+      writeLog(ERROR_LOG_FILE, logMessage);
+      console.error(logMessage.trim());
+    }
   },
 
   // 記錄信息
@@ -62,9 +92,13 @@ export const logger = {
       message,
       data ? JSON.stringify(data, null, 2) : undefined
     );
-    writeLog(INFO_LOG_FILE, logMessage);
-    // 同時輸出到控制台
-    console.log(logMessage.trim());
+    
+    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+      console.log("[INFO]", message, data ? JSON.stringify(data, null, 2) : "");
+    } else {
+      writeLog(INFO_LOG_FILE, logMessage);
+      console.log(logMessage.trim());
+    }
   },
 
   // 記錄警告
@@ -74,9 +108,13 @@ export const logger = {
       message,
       data ? JSON.stringify(data, null, 2) : undefined
     );
-    writeLog(ERROR_LOG_FILE, logMessage);
-    // 同時輸出到控制台
-    console.warn(logMessage.trim());
+    
+    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+      console.warn("[WARN]", message, data ? JSON.stringify(data, null, 2) : "");
+    } else {
+      writeLog(ERROR_LOG_FILE, logMessage);
+      console.warn(logMessage.trim());
+    }
   },
 
   // 記錄調試信息（只在開發環境）

@@ -58,7 +58,7 @@ export async function GET() {
     );
   } catch (error: any) {
     // 使用統一的錯誤處理，確保記錄到日誌
-    // 注意：handleApiError 會自動記錄 500 錯誤到日誌文件
+    // handleApiError 會自動記錄 500 錯誤（在 Vercel 中輸出到控制台，本地寫入文件）
     handleApiError(error, {
       status: 500,
       message: "Failed to fetch movies",
@@ -67,7 +67,7 @@ export async function GET() {
     });
     
     // GET 請求在錯誤時返回空數組而不是錯誤對象（為了前端兼容性）
-    // 但錯誤已經被記錄到日誌文件中了
+    // 錯誤已經被記錄（Vercel 控制台或本地日誌文件）
     return NextResponse.json([], { status: 500 });
   }
 }
