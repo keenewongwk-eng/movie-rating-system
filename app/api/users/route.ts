@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -9,9 +10,10 @@ export async function GET() {
       },
     });
 
+    logger.info("Users fetched successfully", { count: users.length });
     return NextResponse.json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
+    logger.error("Error fetching users", error);
     return NextResponse.json(
       { error: "Failed to fetch users" },
       { status: 500 }
@@ -38,10 +40,12 @@ export async function POST(request: Request) {
       },
     });
 
+    logger.info("User created successfully", { userId: user.id, name: user.name });
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating user:", error);
+    logger.error("Error creating user", error);
     if (error.code === "P2002") {
+      logger.warn("User already exists", { name });
       return NextResponse.json(
         { error: "User already exists" },
         { status: 409 }

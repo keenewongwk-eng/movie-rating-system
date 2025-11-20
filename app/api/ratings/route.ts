@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -13,9 +14,10 @@ export async function GET() {
       },
     });
 
+    logger.info("Ratings fetched successfully", { count: ratings.length });
     return NextResponse.json(ratings);
   } catch (error) {
-    console.error("Error fetching ratings:", error);
+    logger.error("Error fetching ratings", error);
     return NextResponse.json(
       { error: "Failed to fetch ratings" },
       { status: 500 }
@@ -55,10 +57,12 @@ export async function POST(request: Request) {
       },
     });
 
+    logger.info("Rating created successfully", { ratingId: newRating.id, movieId, userId });
     return NextResponse.json(newRating, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating rating:", error);
+    logger.error("Error creating rating", error);
     if (error.code === "P2002") {
+      logger.warn("User already rated this movie", { movieId, userId });
       return NextResponse.json(
         { error: "You have already rated this movie" },
         { status: 409 }

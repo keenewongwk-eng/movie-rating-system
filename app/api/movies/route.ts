@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -17,11 +18,11 @@ export async function GET() {
     });
 
     // 計算每部電影的平均評分
-    const moviesWithStats = movies.map((movie) => {
+    const moviesWithStats = movies.map((movie: any) => {
       const ratings = movie.ratings || [];
       const avgRating =
         ratings.length > 0
-          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
           : 0;
 
       return {
@@ -32,7 +33,7 @@ export async function GET() {
         updatedAt: movie.updatedAt.toISOString(),
         averageRating: Math.round(avgRating * 10) / 10,
         ratingCount: ratings.length,
-        ratings: ratings.map((r) => ({
+        ratings: ratings.map((r: any) => ({
           id: r.id,
           rating: r.rating,
           review: r.review,
@@ -47,9 +48,10 @@ export async function GET() {
     });
 
     // 確保返回數組
+    logger.info("Movies fetched successfully", { count: moviesWithStats.length });
     return NextResponse.json(Array.isArray(moviesWithStats) ? moviesWithStats : []);
   } catch (error) {
-    console.error("Error fetching movies:", error);
+    logger.error("Error fetching movies", error);
     // 返回空數組而不是錯誤對象
     return NextResponse.json([], { status: 500 });
   }
@@ -71,10 +73,12 @@ export async function POST(request: Request) {
       },
     });
 
+    logger.info("Movie created successfully", { movieId: movie.id, title: movie.title });
     return NextResponse.json(movie, { status: 201 });
   } catch (error: any) {
-    console.error("Error creating movie:", error);
+    logger.error("Error creating movie", error);
     if (error.code === "P2002") {
+      logger.warn("Movie already exists", { title: body.title });
       return NextResponse.json(
         { error: "Movie already exists" },
         { status: 409 }

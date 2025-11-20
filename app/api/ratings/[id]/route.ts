@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: Request,
@@ -28,10 +29,12 @@ export async function PUT(
       },
     });
 
+    logger.info("Rating updated successfully", { ratingId: params.id });
     return NextResponse.json(updatedRating);
   } catch (error: any) {
-    console.error("Error updating rating:", error);
+    logger.error("Error updating rating", error);
     if (error.code === "P2025") {
+      logger.warn("Rating not found", { ratingId: params.id });
       return NextResponse.json({ error: "Rating not found" }, { status: 404 });
     }
     return NextResponse.json(
@@ -50,10 +53,12 @@ export async function DELETE(
       where: { id: params.id },
     });
 
+    logger.info("Rating deleted successfully", { ratingId: params.id });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Error deleting rating:", error);
+    logger.error("Error deleting rating", error);
     if (error.code === "P2025") {
+      logger.warn("Rating not found for deletion", { ratingId: params.id });
       return NextResponse.json({ error: "Rating not found" }, { status: 404 });
     }
     return NextResponse.json(

@@ -1,0 +1,117 @@
+import fs from "fs";
+import path from "path";
+
+const LOG_DIR = path.join(process.cwd(), "logs");
+const ERROR_LOG_FILE = path.join(LOG_DIR, "error.log");
+const INFO_LOG_FILE = path.join(LOG_DIR, "info.log");
+
+// 確保日誌目錄存在
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+// 格式化時間戳
+function getTimestamp(): string {
+  return new Date().toISOString();
+}
+
+// 格式化日誌消息
+function formatLogMessage(level: string, message: string, error?: any): string {
+  const timestamp = getTimestamp();
+  let logMessage = `[${timestamp}] [${level}] ${message}`;
+
+  if (error) {
+    if (error instanceof Error) {
+      logMessage += `\nError: ${error.message}`;
+      if (error.stack) {
+        logMessage += `\nStack: ${error.stack}`;
+      }
+    } else {
+      logMessage += `\nError: ${JSON.stringify(error, null, 2)}`;
+    }
+  }
+
+  return logMessage + "\n";
+}
+
+// 寫入日誌文件
+function writeLog(filePath: string, message: string) {
+  try {
+    fs.appendFileSync(filePath, message, "utf8");
+  } catch (err) {
+    // 如果寫入失敗，至少輸出到控制台
+    console.error("Failed to write to log file:", err);
+    console.error("Original log message:", message);
+  }
+}
+
+// 日誌工具對象
+export const logger = {
+  // 記錄錯誤
+  error: (message: string, error?: any) => {
+    const logMessage = formatLogMessage("ERROR", message, error);
+    writeLog(ERROR_LOG_FILE, logMessage);
+    // 同時輸出到控制台
+    console.error(logMessage.trim());
+  },
+
+  // 記錄信息
+  info: (message: string, data?: any) => {
+    const logMessage = formatLogMessage(
+      "INFO",
+      message,
+      data ? JSON.stringify(data, null, 2) : undefined
+    );
+    writeLog(INFO_LOG_FILE, logMessage);
+    // 同時輸出到控制台
+    console.log(logMessage.trim());
+  },
+
+  // 記錄警告
+  warn: (message: string, data?: any) => {
+    const logMessage = formatLogMessage(
+      "WARN",
+      message,
+      data ? JSON.stringify(data, null, 2) : undefined
+    );
+    writeLog(ERROR_LOG_FILE, logMessage);
+    // 同時輸出到控制台
+    console.warn(logMessage.trim());
+  },
+
+  // 記錄調試信息（只在開發環境）
+  debug: (message: string, data?: any) => {
+    if (process.env.NODE_ENV === "development") {
+      const logMessage = formatLogMessage(
+        "DEBUG",
+        message,
+        data ? JSON.stringify(data, null, 2) : undefined
+      );
+      writeLog(INFO_LOG_FILE, logMessage);
+      console.log(logMessage.trim());
+    }
+  },
+};
+
+// 清理舊日誌文件（可選，用於生產環境）
+export function cleanupOldLogs(daysToKeep: number = 7) {
+  try {
+    const files = fs.readdirSync(LOG_DIR);
+    const now = Date.now();
+    const maxAge = daysToKeep * 24 * 60 * 60 * 1000;
+
+    files.forEach((file) => {
+      const filePath = path.join(LOG_DIR, file);
+      const stats = fs.statSync(filePath);
+      const age = now - stats.mtimeMs;
+
+      if (age > maxAge) {
+        fs.unlinkSync(filePath);
+        logger.info(`Deleted old log file: ${file}`);
+      }
+    });
+  } catch (error) {
+    logger.error("Failed to cleanup old logs", error);
+  }
+}
+
