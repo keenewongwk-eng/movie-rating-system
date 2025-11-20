@@ -11,10 +11,12 @@ postgresql://postgres:Linklamw0ng@db.krpejgpftveowxikhpvq.supabase.co:5432/postg
 ### 步驟 1: 檢查 Supabase 項目狀態
 
 1. **登入 Supabase Dashboard**
+
    - 前往 https://supabase.com/dashboard
    - 找到你的項目
 
 2. **確認項目狀態**
+
    - 項目應該顯示為 **"Active"**（綠色）
    - 如果顯示 **"Paused"** 或 **"Creating"**，需要等待或恢復項目
 
@@ -27,10 +29,12 @@ postgresql://postgres:Linklamw0ng@db.krpejgpftveowxikhpvq.supabase.co:5432/postg
 Supabase 推薦使用連接池進行連接，特別是對於 Prisma。
 
 1. **進入 Database Settings**
+
    - Project Settings > Database
    - 滾動到 **"Connection pooling"** 部分
 
 2. **獲取連接池連接字符串**
+
    - 選擇 **"Session mode"**（適合 Prisma）
    - 複製連接字符串
    - 格式通常是：
@@ -45,6 +49,7 @@ Supabase 推薦使用連接池進行連接，特別是對於 Prisma。
 ### 步驟 3: 檢查網絡連接
 
 1. **測試網絡連接**
+
    ```bash
    ping db.krpejgpftveowxikhpvq.supabase.co
    ```
@@ -56,6 +61,7 @@ Supabase 推薦使用連接池進行連接，特別是對於 Prisma。
 ### 步驟 4: 驗證密碼
 
 1. **確認數據庫密碼正確**
+
    - 密碼是：`Linklamw0ng`
    - 如果忘記，可以在 Project Settings > Database 中重置
 
@@ -93,6 +99,7 @@ postgresql://postgres.krpejgpftveowxikhpvq:Linklamw0ng@aws-0-ap-southeast-1.pool
 ### 解決方案 4: 重新創建項目
 
 如果以上都不行，可以：
+
 1. 刪除當前項目
 2. 創建新項目
 3. 記下新的 Reference ID 和密碼
@@ -123,4 +130,3 @@ psql "postgresql://postgres:Linklamw0ng@db.krpejgpftveowxikhpvq.supabase.co:5432
 3. **如果還是不行，聯繫 Supabase 支持**
 
 告訴我你看到了什麼，我可以提供更具體的幫助！
-
