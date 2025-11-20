@@ -23,6 +23,11 @@ interface Movie {
       icon: string;
     };
   }>;
+  recommenders: Array<{
+    id: string;
+    name: string;
+    icon: string;
+  }>;
 }
 
 type SortBy = "rating" | "date";
