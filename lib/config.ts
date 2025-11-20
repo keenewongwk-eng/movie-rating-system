@@ -35,13 +35,14 @@ function loadConfig(): Config {
 
   try {
     const configFile = fs.readFileSync(configPath, "utf8");
-    config = JSON.parse(configFile);
+    const parsedConfig = JSON.parse(configFile) as Config;
 
     // 驗證配置
-    if (!config.database || !config.database.url) {
+    if (!parsedConfig.database || !parsedConfig.database.url) {
       throw new Error("config.json must contain database.url");
     }
 
+    config = parsedConfig;
     return config;
   } catch (error: any) {
     if (error instanceof SyntaxError) {
