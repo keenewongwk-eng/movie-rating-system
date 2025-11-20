@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import MovieCard from "./MovieCard";
 import AddMovieForm from "./AddMovieForm";
 
@@ -101,6 +102,12 @@ export default function MovieList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-2xl font-semibold">電影列表</h2>
         <div className="flex flex-wrap gap-2 items-center">
+          <Link
+            href="/users"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-sm whitespace-nowrap"
+          >
+            👥 用戶管理
+          </Link>
           <div className="flex items-center gap-2 bg-surface rounded-lg p-1">
             <button
               onClick={() => handleSortChange("rating")}
