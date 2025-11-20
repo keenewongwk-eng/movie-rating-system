@@ -110,7 +110,7 @@ export default function MovieCard({
       <div className="text-xs text-gray-400 mb-2 flex items-start gap-1">
         <span className="text-yellow-500 flex-shrink-0 mt-0.5">👍</span>
         <span className="line-clamp-1">
-          由 {movie.recommenders.map((r) => r.name).join(", ")} 推薦
+          由 {movie.recommenders.map((r) => r.name).join(", ")} 大推
         </span>
       </div>
     );

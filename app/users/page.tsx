@@ -266,13 +266,13 @@ export default function UsersPage() {
           </button>
         </div>
 
-        {/* 伏片推薦王排行榜 */}
+        {/* 伏片大推王排行榜 */}
         {rankingList.length > 0 && (
           <div className="mb-10 bg-surface border border-red-900/50 rounded-lg overflow-hidden shadow-lg">
             <div className="bg-red-900/20 px-6 py-4 border-b border-red-900/30 flex items-center gap-2">
               <span className="text-2xl">☠️</span>
               <h2 className="text-xl font-bold text-red-400">
-                伏片推薦王排行榜
+                伏片大推王排行榜
               </h2>
             </div>
             <div className="overflow-x-auto">
@@ -282,7 +282,7 @@ export default function UsersPage() {
                     <th className="px-6 py-3 font-medium">排名</th>
                     <th className="px-6 py-3 font-medium">用戶</th>
                     <th className="px-6 py-3 font-medium text-right">
-                      推薦伏片數量 (評分 &lt; 3.0)
+                      大推伏片數量 (評分 &lt; 3.0)
                     </th>
                   </tr>
                 </thead>
@@ -464,7 +464,7 @@ export default function UsersPage() {
                       </div>
                       {user.badRecommendationsCount > 0 && (
                         <div className="text-red-400 font-semibold">
-                          推薦伏片: {user.badRecommendationsCount} 部
+                          大推伏片: {user.badRecommendationsCount} 部
                         </div>
                       )}
                     </div>

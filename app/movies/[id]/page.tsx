@@ -315,7 +315,7 @@ export default function MoviePage() {
               {/* 推薦人選擇 */}
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  推薦人（可選）
+                  大推人（可選）
                 </label>
                 <div className="relative">
                   <button
@@ -327,8 +327,8 @@ export default function MoviePage() {
                   >
                     <span className="truncate">
                       {selectedRecommenderIds.length > 0
-                        ? `已選擇 ${selectedRecommenderIds.length} 位推薦人`
-                        : "選擇推薦人"}
+                        ? `已選擇 ${selectedRecommenderIds.length} 位大推人`
+                        : "選擇大推人"}
                     </span>
                     <span className="text-xs text-gray-400">▼</span>
                   </button>
@@ -422,7 +422,7 @@ export default function MoviePage() {
                       <span className="font-semibold text-white">
                         {movie.recommenders.map((r) => r.name).join(", ")}
                       </span>{" "}
-                      推薦
+                      大推
                     </span>
                   </div>
                 )}

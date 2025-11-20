@@ -127,7 +127,7 @@ export default function AddMovieForm({ onSuccess }: AddMovieFormProps) {
         {/* 推薦人選擇 */}
         <div>
           <label className="block text-sm font-medium mb-2">
-            推薦人（可選）
+            大推人（可選）
           </label>
           <div className="relative">
             <button
@@ -139,8 +139,8 @@ export default function AddMovieForm({ onSuccess }: AddMovieFormProps) {
             >
               <span className="truncate">
                 {selectedRecommenderIds.length > 0
-                  ? `已選擇 ${selectedRecommenderIds.length} 位推薦人`
-                  : "選擇推薦人"}
+                  ? `已選擇 ${selectedRecommenderIds.length} 位大推人`
+                  : "選擇大推人"}
               </span>
               <span className="text-xs text-gray-400">▼</span>
             </button>
