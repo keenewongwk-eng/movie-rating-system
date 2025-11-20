@@ -18,6 +18,7 @@ export async function GET(
             createdAt: "desc",
           },
         },
+        recommenders: true, // 包含推薦人
       },
     });
 
@@ -52,6 +53,13 @@ export async function GET(
           icon: r.user.icon,
         },
       })),
+      recommenders: movie.recommenders
+        ? movie.recommenders.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            icon: r.icon,
+          }))
+        : [],
     });
   } catch (error: any) {
     return handleApiError(error, {
@@ -69,7 +77,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const { title, image } = body;
+    const { title, image, recommenderIds } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -83,6 +91,11 @@ export async function PUT(
       data: {
         title,
         image: image !== undefined ? image : undefined,
+        recommenders: recommenderIds
+          ? {
+              set: recommenderIds.map((id: string) => ({ id })),
+            }
+          : undefined,
       },
       include: {
         ratings: {
@@ -93,6 +106,7 @@ export async function PUT(
             createdAt: "desc",
           },
         },
+        recommenders: true,
       },
     });
 
@@ -123,6 +137,13 @@ export async function PUT(
           icon: r.user.icon,
         },
       })),
+      recommenders: updatedMovie.recommenders
+        ? updatedMovie.recommenders.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            icon: r.icon,
+          }))
+        : [],
     });
   } catch (error: any) {
     if (error.code === "P2025") {
@@ -165,4 +186,3 @@ export async function DELETE(
     });
   }
 }
-

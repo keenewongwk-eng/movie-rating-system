@@ -30,6 +30,11 @@ interface Movie {
       icon: string;
     };
   }>;
+  recommenders: Array<{
+    id: string;
+    name: string;
+    icon: string;
+  }>;
 }
 
 interface MovieCardProps {
@@ -98,6 +103,19 @@ export default function MovieCard({
     );
   };
 
+  // 渲染推薦人
+  const renderRecommenders = () => {
+    if (!movie.recommenders || movie.recommenders.length === 0) return null;
+    return (
+      <div className="text-xs text-gray-400 mb-2 flex items-start gap-1">
+        <span className="text-yellow-500 flex-shrink-0 mt-0.5">👍</span>
+        <span className="line-clamp-1">
+          由 {movie.recommenders.map((r) => r.name).join(", ")} 推薦
+        </span>
+      </div>
+    );
+  };
+
   if (viewMode === "small") {
     return (
       <>
@@ -123,7 +141,7 @@ export default function MovieCard({
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2 mb-2">
+              <div className="flex items-start gap-2 mb-1">
                 <h3
                   className="text-lg font-bold flex-1 overflow-hidden hover:text-blue-400 transition-colors"
                   style={{
@@ -136,6 +154,9 @@ export default function MovieCard({
                   {movie.title}
                 </h3>
               </div>
+
+              {renderRecommenders()}
+
               <div className="mb-3">
                 <div className="text-sm mb-1">
                   平均:{" "}
@@ -223,11 +244,14 @@ export default function MovieCard({
         )}
         <div className="flex-1">
           <h3
-            className="text-2xl font-bold mb-2 cursor-pointer hover:text-blue-400 transition-colors"
+            className="text-2xl font-bold mb-1 cursor-pointer hover:text-blue-400 transition-colors"
             onClick={handleCardClick}
           >
             {movie.title}
           </h3>
+
+          {renderRecommenders()}
+
           <div className="mb-4">
             <div className="text-lg mb-1">
               平均評分:{" "}

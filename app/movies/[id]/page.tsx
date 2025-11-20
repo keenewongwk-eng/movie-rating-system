@@ -32,6 +32,17 @@ interface Movie {
       icon: string;
     };
   }>;
+  recommenders: Array<{
+    id: string;
+    name: string;
+    icon: string;
+  }>;
+}
+
+interface User {
+  id: string;
+  name: string;
+  icon: string;
 }
 
 export default function MoviePage() {
@@ -47,6 +58,13 @@ export default function MoviePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // 推薦人編輯狀態
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedRecommenderIds, setSelectedRecommenderIds] = useState<
+    string[]
+  >([]);
+  const [isRecommenderSelectOpen, setIsRecommenderSelectOpen] = useState(false);
+
   // 評分編輯狀態
   const [editingRatingId, setEditingRatingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState<number>(5);
@@ -58,6 +76,7 @@ export default function MoviePage() {
 
   useEffect(() => {
     fetchMovie();
+    fetchUsers();
   }, [movieId]);
 
   const fetchMovie = async () => {
@@ -74,11 +93,34 @@ export default function MoviePage() {
       setMovie(data);
       setEditTitle(data.title);
       setEditImage(data.image || "");
+      setSelectedRecommenderIds(
+        data.recommenders ? data.recommenders.map((r: any) => r.id) : []
+      );
     } catch (error) {
       console.error("Error fetching movie:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const toggleRecommender = (userId: string) => {
+    setSelectedRecommenderIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   const handleUpdate = async () => {
@@ -96,6 +138,7 @@ export default function MoviePage() {
         body: JSON.stringify({
           title: editTitle.trim(),
           image: editImage.trim() || null,
+          recommenderIds: selectedRecommenderIds,
         }),
       });
 
@@ -242,35 +285,115 @@ export default function MoviePage() {
         {/* 電影標題和圖片 */}
         <div className="mb-6">
           {editing ? (
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg sm:text-xl font-bold"
-                placeholder="電影名稱"
-              />
-              <input
-                type="text"
-                value={editImage}
-                onChange={(e) => setEditImage(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm"
-                placeholder="圖片 URL（可選）"
-              />
-              <div className="flex gap-2">
+            <div className="space-y-4 bg-surface p-4 rounded-lg border border-gray-700">
+              <h3 className="text-lg font-semibold mb-2">編輯電影</h3>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  電影名稱
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                  placeholder="電影名稱"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  圖片 URL
+                </label>
+                <input
+                  type="text"
+                  value={editImage}
+                  onChange={(e) => setEditImage(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                  placeholder="圖片 URL（可選）"
+                />
+              </div>
+
+              {/* 推薦人選擇 */}
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  推薦人（可選）
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsRecommenderSelectOpen(!isRecommenderSelectOpen)
+                    }
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-left flex items-center justify-between"
+                  >
+                    <span className="truncate">
+                      {selectedRecommenderIds.length > 0
+                        ? `已選擇 ${selectedRecommenderIds.length} 位推薦人`
+                        : "選擇推薦人"}
+                    </span>
+                    <span className="text-xs text-gray-400">▼</span>
+                  </button>
+
+                  {isRecommenderSelectOpen && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-surface border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto p-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {users.map((user) => (
+                          <div
+                            key={user.id}
+                            onClick={() => toggleRecommender(user.id)}
+                            className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                              selectedRecommenderIds.includes(user.id)
+                                ? "bg-blue-600/20 border border-blue-600"
+                                : "hover:bg-gray-700 border border-transparent"
+                            }`}
+                          >
+                            <div className="w-6 h-6 flex-shrink-0">
+                              {isImageUrl(user.icon) ? (
+                                <div className="w-full h-full rounded-full overflow-hidden">
+                                  <img
+                                    src={user.icon}
+                                    alt={user.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="text-lg leading-none text-center">
+                                  {user.icon}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm truncate">
+                              {user.name}
+                            </span>
+                            {selectedRecommenderIds.includes(user.id) && (
+                              <span className="ml-auto text-blue-500 text-xs">
+                                ✓
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={handleUpdate}
-                  className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                 >
-                  保存
+                  保存更改
                 </button>
                 <button
                   onClick={() => {
                     setEditing(false);
                     setEditTitle(movie.title);
                     setEditImage(movie.image || "");
+                    setSelectedRecommenderIds(
+                      movie.recommenders.map((r) => r.id)
+                    );
                   }}
-                  className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                 >
                   取消
                 </button>
@@ -289,10 +412,25 @@ export default function MoviePage() {
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 break-words">
                   {movie.title}
                 </h1>
+
+                {/* 顯示推薦人 */}
+                {movie.recommenders && movie.recommenders.length > 0 && (
+                  <div className="flex items-center gap-2 mb-3 text-sm">
+                    <span className="text-yellow-500 text-lg">👍</span>
+                    <span className="text-gray-300">
+                      由{" "}
+                      <span className="font-semibold text-white">
+                        {movie.recommenders.map((r) => r.name).join(", ")}
+                      </span>{" "}
+                      推薦
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3">
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <span className="text-yellow-400 text-lg sm:text-xl">
-                      ⭐
+                      ★
                     </span>
                     <span className="text-lg sm:text-xl font-semibold">
                       {movie.averageRating > 0
@@ -309,7 +447,7 @@ export default function MoviePage() {
                     onClick={() => setEditing(true)}
                     className="px-3 py-1.5 text-sm sm:text-base bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                   >
-                    編輯標題
+                    編輯電影
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
@@ -432,7 +570,7 @@ export default function MoviePage() {
                                   : "text-gray-600"
                               } transition-colors`}
                             >
-                              ⭐
+                              ★
                             </button>
                           ))}
                         </div>
@@ -487,7 +625,8 @@ export default function MoviePage() {
                           {rating.user.name}
                         </span>
                         <span className="text-yellow-400 text-sm sm:text-base">
-                          {"⭐".repeat(rating.rating)}
+                          {"★".repeat(rating.rating) +
+                            "☆".repeat(5 - rating.rating)}
                         </span>
                         <span className="text-gray-400 text-xs sm:text-sm">
                           {new Date(rating.createdAt).toLocaleDateString(

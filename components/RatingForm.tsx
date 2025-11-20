@@ -33,6 +33,7 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
   const [showUserForm, setShowUserForm] = useState(false);
   const [newUserName, setNewUserName] = useState<string>("");
   const [newUserIcon, setNewUserIcon] = useState<string>("😊");
+  const [isUserSelectOpen, setIsUserSelectOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -126,6 +127,9 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
 
   const commonIcons = ["😊", "😎", "🐻", "🐨", "🤖", "👻", "🎭", "🦄"];
 
+  // 獲取當前選中的用戶對象
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -133,23 +137,76 @@ export default function RatingForm({ movieId, onSuccess }: RatingFormProps) {
     >
       <div>
         <label className="block text-sm font-medium mb-2">選擇用戶</label>
-        <div className="flex gap-2 mb-2">
-          <select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            className="flex-1 bg-surface border border-gray-700 rounded-lg px-3 py-2 text-white"
-            required
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {isImageUrl(user.icon) ? "🖼️" : user.icon} {user.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex gap-2 mb-2 relative z-20">
+          <div className="flex-1 relative">
+            <button
+              type="button"
+              onClick={() => setIsUserSelectOpen(!isUserSelectOpen)}
+              className="w-full bg-surface border border-gray-700 rounded-lg px-3 py-2 text-white text-left flex items-center gap-2 min-h-[42px]"
+            >
+              {selectedUser ? (
+                <>
+                  {isImageUrl(selectedUser.icon) ? (
+                    <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-500 flex-shrink-0">
+                      <img
+                        src={selectedUser.icon}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-lg leading-none">
+                      {selectedUser.icon}
+                    </span>
+                  )}
+                  <span className="truncate">{selectedUser.name}</span>
+                </>
+              ) : (
+                <span className="text-gray-400">請選擇用戶</span>
+              )}
+              <span className="ml-auto text-xs text-gray-400">▼</span>
+            </button>
+
+            {/* 自定義下拉選單 */}
+            {isUserSelectOpen && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-surface border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+                {users.map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedUserId(user.id);
+                      setIsUserSelectOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center gap-2 transition-colors ${
+                      user.id === selectedUserId ? "bg-gray-800" : ""
+                    }`}
+                  >
+                    {isImageUrl(user.icon) ? (
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-500 flex-shrink-0">
+                        <img
+                          src={user.icon}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-lg leading-none">{user.icon}</span>
+                    )}
+                    <span className="truncate">{user.name}</span>
+                    {user.id === selectedUserId && (
+                      <span className="ml-auto text-green-500">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={() => setShowUserForm(!showUserForm)}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm"
+            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex-shrink-0"
           >
             {showUserForm ? "取消" : "+ 新用戶"}
           </button>

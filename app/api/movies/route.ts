@@ -12,6 +12,7 @@ export async function GET() {
             user: true,
           },
         },
+        recommenders: true, // 包含推薦人信息
       },
       orderBy: {
         createdAt: "desc",
@@ -46,6 +47,13 @@ export async function GET() {
             icon: r.user.icon,
           },
         })),
+        recommenders: movie.recommenders
+          ? movie.recommenders.map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              icon: r.icon,
+            }))
+          : [],
       };
     });
 
@@ -77,7 +85,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     title = body.title;
-    const { image } = body;
+    const { image, recommenderIds } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -87,12 +95,22 @@ export async function POST(request: Request) {
       data: {
         title,
         image: image || null,
+        recommenders:
+          recommenderIds && recommenderIds.length > 0
+            ? {
+                connect: recommenderIds.map((id: string) => ({ id })),
+              }
+            : undefined,
+      },
+      include: {
+        recommenders: true,
       },
     });
 
     logger.info("Movie created successfully", {
       movieId: movie.id,
       title: movie.title,
+      recommendersCount: movie.recommenders.length,
     });
     return NextResponse.json(movie, { status: 201 });
   } catch (error: any) {
