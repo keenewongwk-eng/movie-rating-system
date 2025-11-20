@@ -29,6 +29,13 @@ export default function UsersPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 新增用戶的狀態
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState("😊");
+  const [creating, setCreating] = useState(false);
+  const newFileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -63,20 +70,17 @@ export default function UsersPage() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadImage = async (file: File): Promise<string | null> => {
     // 驗證文件類型
     if (!file.type.startsWith("image/")) {
       alert("請選擇圖片文件");
-      return;
+      return null;
     }
 
     // 驗證文件大小（5MB）
     if (file.size > 5 * 1024 * 1024) {
       alert("圖片大小不能超過 5MB");
-      return;
+      return null;
     }
 
     setUploading(true);
@@ -91,17 +95,37 @@ export default function UsersPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setEditIcon(data.url);
+        return data.url;
       } else {
         const error = await response.json();
         alert(error.error || "上傳失敗");
+        return null;
       }
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("上傳失敗");
+      return null;
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleEditImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadImage(file);
+    if (url) setEditIcon(url);
+  };
+
+  const handleNewImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadImage(file);
+    if (url) setNewIcon(url);
   };
 
   const handleUpdate = async (userId: string) => {
@@ -163,6 +187,42 @@ export default function UsersPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newName.trim()) {
+      alert("請輸入用戶名稱");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newName.trim(),
+          icon: newIcon || "😊",
+        }),
+      });
+
+      if (response.ok) {
+        await fetchUsers();
+        setShowCreateModal(false);
+        setNewName("");
+        setNewIcon("😊");
+      } else {
+        const error = await response.json();
+        alert(error.error || "創建失敗");
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+      alert("創建失敗");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const commonIcons = ["😊", "😎", "🐻", "🐨", "🤖", "👻", "🎭", "🦄"];
 
   if (loading) {
@@ -186,10 +246,18 @@ export default function UsersPage() {
           ← 返回電影列表
         </Link>
 
-        {/* 標題 */}
-        <div className="mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">用戶管理</h1>
-          <p className="text-gray-400">管理所有用戶信息</p>
+        {/* 標題和新增按鈕 */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2">用戶管理</h1>
+            <p className="text-gray-400">管理所有用戶信息</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+          >
+            <span className="text-xl leading-none">+</span> 新增用戶
+          </button>
         </div>
 
         {/* 用戶列表 */}
@@ -243,7 +311,7 @@ export default function UsersPage() {
                           ref={fileInputRef}
                           type="file"
                           accept="image/*"
-                          onChange={handleImageUpload}
+                          onChange={handleEditImageUpload}
                           className="hidden"
                           id={`file-input-${user.id}`}
                         />
@@ -340,6 +408,124 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {/* 新增用戶彈出對話框 */}
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCreateModal(false);
+          }}
+        >
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold">新增用戶</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  用戶名稱
+                </label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                  placeholder="請輸入用戶名稱"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  個人資料圖片
+                </label>
+
+                {/* 當前選擇的圖片預覽 */}
+                {newIcon && isImageUrl(newIcon) ? (
+                  <div className="mb-3 flex justify-center">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700">
+                      <img
+                        src={newIcon}
+                        alt="預覽"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-3 flex justify-center">
+                    <div className="text-6xl">{newIcon}</div>
+                  </div>
+                )}
+
+                {/* 上傳圖片按鈕 */}
+                <div className="mb-3">
+                  <input
+                    ref={newFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleNewImageUpload}
+                    className="hidden"
+                    id="new-file-input"
+                  />
+                  <label
+                    htmlFor="new-file-input"
+                    className="block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm text-center cursor-pointer hover:bg-gray-700 transition-colors"
+                  >
+                    {uploading ? "上傳中..." : "上傳圖片 (1:1)"}
+                  </label>
+                </div>
+
+                {/* Emoji 選擇 */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-2">
+                    或選擇 Emoji
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {commonIcons.map((icon) => (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() => setNewIcon(icon)}
+                        className={`text-2xl p-2 rounded-lg border-2 transition-colors ${
+                          newIcon === icon && !isImageUrl(newIcon)
+                            ? "border-green-500 bg-green-500/20"
+                            : "border-gray-700 hover:border-gray-600"
+                        }`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleCreateUser}
+                  disabled={creating || uploading}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg transition-colors font-medium"
+                >
+                  {creating ? "創建中..." : "創建用戶"}
+                </button>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
