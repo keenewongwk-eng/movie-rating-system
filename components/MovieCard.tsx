@@ -64,6 +64,37 @@ export default function MovieCard({
     return "⭐".repeat(rating) + "☆".repeat(5 - rating);
   };
 
+  // 渲染最近評分的用戶圖標（最多顯示 3 個）
+  const renderRecentRaters = () => {
+    const recentRatings = movie.ratings.slice(0, 3);
+    if (recentRatings.length === 0) return null;
+
+    return (
+      <div className="flex -space-x-2 mr-2">
+        {recentRatings.map((rating, index) => (
+          <div
+            key={rating.id}
+            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-surface z-10"
+            style={{ zIndex: 10 - index }}
+            title={rating.user.name}
+          >
+            {isImageUrl(rating.user.icon) ? (
+              <img
+                src={rating.user.icon}
+                alt={rating.user.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs">
+                {rating.user.icon}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (viewMode === "small") {
     return (
       <>
@@ -103,8 +134,11 @@ export default function MovieCard({
                     : "無"}
                   /5.0
                 </div>
-                <div className="text-xs text-gray-400">
-                  {movie.ratingCount} 個評分
+                <div className="flex items-center">
+                  {renderRecentRaters()}
+                  <div className="text-xs text-gray-400">
+                    {movie.ratingCount} 個評分
+                  </div>
                 </div>
               </div>
               <button
@@ -185,8 +219,11 @@ export default function MovieCard({
               {movie.averageRating > 0 ? movie.averageRating.toFixed(1) : "無"}{" "}
               / 5.0
             </div>
-            <div className="text-sm text-gray-400">
-              {movie.ratingCount} 個評分
+            <div className="flex items-center">
+              {renderRecentRaters()}
+              <div className="text-sm text-gray-400">
+                {movie.ratingCount} 個評分
+              </div>
             </div>
           </div>
 

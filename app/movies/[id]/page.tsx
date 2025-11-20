@@ -469,37 +469,43 @@ export default function MoviePage() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                          {isImageUrl(rating.user.icon) ? (
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
-                              <img
-                                src={rating.user.icon}
-                                alt={rating.user.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <span className="text-xl sm:text-2xl">
-                              {rating.user.icon}
-                            </span>
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
+                        {isImageUrl(rating.user.icon) ? (
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
+                            <img
+                              src={rating.user.icon}
+                              alt={rating.user.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-xl sm:text-2xl">
+                            {rating.user.icon}
+                          </span>
+                        )}
+                        <span className="font-semibold text-sm sm:text-base">
+                          {rating.user.name}
+                        </span>
+                        <span className="text-yellow-400 text-sm sm:text-base">
+                          {"⭐".repeat(rating.rating)}
+                        </span>
+                        <span className="text-gray-400 text-xs sm:text-sm">
+                          {new Date(rating.createdAt).toLocaleDateString(
+                            "zh-TW"
                           )}
-                          <span className="font-semibold text-sm sm:text-base">
-                            {rating.user.name}
-                          </span>
-                          <span className="text-yellow-400 text-sm sm:text-base">
-                            {"⭐".repeat(rating.rating)}
-                          </span>
-                          <span className="text-gray-400 text-xs sm:text-sm">
-                            {new Date(rating.createdAt).toLocaleDateString(
-                              "zh-TW"
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
+                        </span>
+                      </div>
+                      <div className="relative min-h-[2rem]">
+                        {rating.review && (
+                          <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words pr-20">
+                            {rating.review}
+                          </p>
+                        )}
+                        {/* 按鈕固定在右下角 */}
+                        <div className="absolute bottom-0 right-0 flex gap-1">
                           <button
                             onClick={() => handleEditRating(rating)}
-                            className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
                             title="編輯"
                           >
                             編輯
@@ -508,18 +514,13 @@ export default function MoviePage() {
                             onClick={() =>
                               setShowDeleteRatingConfirm(rating.id)
                             }
-                            className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 rounded transition-colors"
+                            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
                             title="刪除"
                           >
                             刪除
                           </button>
                         </div>
                       </div>
-                      {rating.review && (
-                        <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-wrap break-words">
-                          {rating.review}
-                        </p>
-                      )}
                     </>
                   )}
                 </div>
