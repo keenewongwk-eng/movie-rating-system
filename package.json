@@ -6,15 +6,16 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "dev": "node scripts/load-config.js && next dev",
+    "build": "node scripts/load-config.js && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:clear": "tsx prisma/clear-data.ts",
-    "db:reset": "tsx prisma/clear-data.ts && tsx prisma/seed.ts"
+    "db:push": "node scripts/load-config.js && prisma db push",
+    "db:studio": "node scripts/load-config.js && prisma studio",
+    "db:seed": "node scripts/load-config.js && tsx prisma/seed.ts",
+    "db:clear": "node scripts/load-config.js && tsx prisma/clear-data.ts",
+    "db:reset": "node scripts/load-config.js && tsx prisma/clear-data.ts && node scripts/load-config.js && tsx prisma/seed.ts",
+    "db:generate": "node scripts/load-config.js && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

@@ -26,9 +26,25 @@
 npm install
 ```
 
-### 2. 設置數據庫
+### 2. 設置數據庫配置
 
-本項目使用 Supabase 作為數據庫（本地和生產環境都使用同一個數據庫）。
+本項目使用 `config.json` 文件來存儲數據庫配置。
+
+#### 創建配置文件
+
+1. **複製示例配置文件**：
+   ```bash
+   cp config.json.example config.json
+   ```
+
+2. **編輯 `config.json`**，填入你的 Supabase 連接字符串：
+   ```json
+   {
+     "database": {
+       "url": "postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
+     }
+   }
+   ```
 
 #### 獲取 Supabase 連接字符串
 
@@ -43,25 +59,18 @@ npm install
    - 選擇 **"Session mode"**（適合 Prisma）
    - 複製連接字符串
 
-3. **設置本地環境變數**
-   
-   創建 `.env` 文件：
-   ```bash
-   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
-   ```
-   
-   或者創建 `.env.local` 文件（推薦，不會被提交到 Git）：
-   ```bash
-   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
-   ```
+3. **更新 `config.json`**
+   - 將連接字符串填入 `database.url` 字段
 
 #### 生產環境（Vercel）
 
-在 Vercel 環境變數中設置相同的 `DATABASE_URL`：
+在 Vercel 環境變數中設置 `DATABASE_URL`：
 1. 進入 Vercel 項目設置
 2. **Settings** > **Environment Variables**
-3. 添加 `DATABASE_URL`，值為 Supabase 連接字符串
+3. 添加 `DATABASE_URL`，值為 Supabase 連接字符串（與 `config.json` 中的相同）
 4. 選擇所有環境（Production、Preview、Development）
+
+⚠️ **注意**: `config.json` 已添加到 `.gitignore`，不會提交到 Git。
 
 詳細步驟請查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
