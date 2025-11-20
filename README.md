@@ -99,6 +99,8 @@ npm run dev
 
 📖 **詳細部署指南**: 請查看 [DEPLOYMENT.md](./DEPLOYMENT.md) 獲取完整的 Supabase 數據庫設置步驟。
 
+🌐 **公開訪問**: 部署後，你的網站是完全公開的，任何人都可以訪問，**不需要登入 Vercel**。詳細說明請查看 [VERCEL_PUBLIC_ACCESS.md](./VERCEL_PUBLIC_ACCESS.md)。
+
 ### 方法 1: Vercel 部署（推薦）
 
 1. **將代碼推送到 GitHub**
