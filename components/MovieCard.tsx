@@ -35,7 +35,7 @@ export default function MovieCard({
   viewMode = "large",
 }: MovieCardProps) {
   const router = useRouter();
-  const [showRatingForm, setShowRatingForm] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const handleCardClick = (e: React.MouseEvent) => {
     // 如果點擊的是按鈕或表單，不跳轉
@@ -98,22 +98,14 @@ export default function MovieCard({
               </div>
             </div>
             <button
-              onClick={() => setShowRatingForm(!showRatingForm)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowRatingModal(true);
+              }}
               className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-xs"
             >
-              {showRatingForm ? "取消" : "評分"}
+              評分
             </button>
-            {showRatingForm && (
-              <div className="mt-3">
-                <RatingForm
-                  movieId={movie.id}
-                  onSuccess={() => {
-                    setShowRatingForm(false);
-                    onUpdate();
-                  }}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -124,7 +116,10 @@ export default function MovieCard({
     <div className="bg-surface rounded-lg p-6 shadow-lg">
       <div className="flex flex-col md:flex-row gap-6">
         {movie.image && (
-          <div className="flex-shrink-0 w-full md:w-48 cursor-pointer" onClick={handleCardClick}>
+          <div
+            className="flex-shrink-0 w-full md:w-48 cursor-pointer"
+            onClick={handleCardClick}
+          >
             <div className="aspect-[2/3] overflow-hidden rounded-lg">
               <img
                 src={movie.image}
@@ -153,21 +148,14 @@ export default function MovieCard({
           </div>
 
           <button
-            onClick={() => setShowRatingForm(!showRatingForm)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRatingModal(true);
+            }}
             className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm"
           >
-            {showRatingForm ? "取消評分" : "新增評分"}
+            新增評分
           </button>
-
-          {showRatingForm && (
-            <RatingForm
-              movieId={movie.id}
-              onSuccess={() => {
-                setShowRatingForm(false);
-                onUpdate();
-              }}
-            />
-          )}
 
           {movie.ratings.length > 0 && (
             <div className="mt-6 space-y-4">
@@ -198,6 +186,38 @@ export default function MovieCard({
           )}
         </div>
       </div>
+
+      {/* 評分彈出對話框 */}
+      {showRatingModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRatingModal(false);
+            }
+          }}
+        >
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold">為「{movie.title}」評分</h3>
+              <button
+                onClick={() => setShowRatingModal(false)}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+                aria-label="關閉"
+              >
+                ×
+              </button>
+            </div>
+            <RatingForm
+              movieId={movie.id}
+              onSuccess={() => {
+                setShowRatingModal(false);
+                onUpdate();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
