@@ -80,10 +80,7 @@ export async function PUT(
     const { title, image, recommenderIds } = body;
 
     if (!title) {
-      return NextResponse.json(
-        { error: "Title is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     const updatedMovie = await prisma.movie.update({

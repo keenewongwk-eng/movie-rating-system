@@ -9,6 +9,7 @@ interface User {
   icon: string;
   createdAt: string;
   updatedAt: string;
+  badRecommendationsCount: number; // 新增字段
 }
 
 // 判斷是否為圖片 URL（base64 或 http/https）
@@ -54,6 +55,11 @@ export default function UsersPage() {
       setLoading(false);
     }
   };
+
+  // 計算排行榜數據
+  const rankingList = users
+    .filter((u) => u.badRecommendationsCount > 0)
+    .sort((a, b) => b.badRecommendationsCount - a.badRecommendationsCount);
 
   const handleEdit = (user: User) => {
     setEditingUserId(user.id);
@@ -260,6 +266,74 @@ export default function UsersPage() {
           </button>
         </div>
 
+        {/* 伏片推薦王排行榜 */}
+        {rankingList.length > 0 && (
+          <div className="mb-10 bg-surface border border-red-900/50 rounded-lg overflow-hidden shadow-lg">
+            <div className="bg-red-900/20 px-6 py-4 border-b border-red-900/30 flex items-center gap-2">
+              <span className="text-2xl">☠️</span>
+              <h2 className="text-xl font-bold text-red-400">
+                伏片推薦王排行榜
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-black/20 text-gray-400 text-sm">
+                  <tr>
+                    <th className="px-6 py-3 font-medium">排名</th>
+                    <th className="px-6 py-3 font-medium">用戶</th>
+                    <th className="px-6 py-3 font-medium text-right">
+                      推薦伏片數量 (評分 &lt; 3.0)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {rankingList.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div
+                          className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${
+                            index === 0
+                              ? "bg-yellow-500/20 text-yellow-500"
+                              : index === 1
+                              ? "bg-gray-400/20 text-gray-400"
+                              : index === 2
+                              ? "bg-orange-700/20 text-orange-700"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {isImageUrl(user.icon) ? (
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-600">
+                              <img
+                                src={user.icon}
+                                alt={user.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-xl">{user.icon}</span>
+                          )}
+                          <span className="font-medium">{user.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono text-lg font-bold text-red-400">
+                        {user.badRecommendationsCount}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* 用戶列表 */}
         {users.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
@@ -384,8 +458,15 @@ export default function UsersPage() {
                       </h3>
                     </div>
                     <div className="text-xs sm:text-sm text-gray-400 mb-4 text-center">
-                      創建於{" "}
-                      {new Date(user.createdAt).toLocaleDateString("zh-TW")}
+                      <div className="mb-1">
+                        創建於{" "}
+                        {new Date(user.createdAt).toLocaleDateString("zh-TW")}
+                      </div>
+                      {user.badRecommendationsCount > 0 && (
+                        <div className="text-red-400 font-semibold">
+                          推薦伏片: {user.badRecommendationsCount} 部
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

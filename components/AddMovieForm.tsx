@@ -26,9 +26,9 @@ export default function AddMovieForm({ onSuccess }: AddMovieFormProps) {
   const [image, setImage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedRecommenderIds, setSelectedRecommenderIds] = useState<string[]>(
-    []
-  );
+  const [selectedRecommenderIds, setSelectedRecommenderIds] = useState<
+    string[]
+  >([]);
   const [isRecommenderSelectOpen, setIsRecommenderSelectOpen] = useState(false);
 
   useEffect(() => {
@@ -126,11 +126,15 @@ export default function AddMovieForm({ onSuccess }: AddMovieFormProps) {
 
         {/* 推薦人選擇 */}
         <div>
-          <label className="block text-sm font-medium mb-2">推薦人（可選）</label>
+          <label className="block text-sm font-medium mb-2">
+            推薦人（可選）
+          </label>
           <div className="relative">
             <button
               type="button"
-              onClick={() => setIsRecommenderSelectOpen(!isRecommenderSelectOpen)}
+              onClick={() =>
+                setIsRecommenderSelectOpen(!isRecommenderSelectOpen)
+              }
               className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white text-left flex items-center justify-between"
             >
               <span className="truncate">
@@ -179,7 +183,7 @@ export default function AddMovieForm({ onSuccess }: AddMovieFormProps) {
               </div>
             )}
           </div>
-          
+
           {/* 已選推薦人預覽 */}
           {selectedRecommenderIds.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
