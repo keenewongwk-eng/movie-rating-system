@@ -62,10 +62,7 @@ export async function PUT(
     const { name, icon } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: "Name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     const updatedUser = await prisma.user.update({
@@ -118,4 +115,3 @@ export async function DELETE(
     });
   }
 }
-

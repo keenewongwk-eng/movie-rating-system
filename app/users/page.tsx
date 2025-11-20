@@ -184,7 +184,7 @@ export default function UsersPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleUpdate(user.id)}
-                        className="1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors`}
+                        className="flex-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                       >
                         保存
                       </button>
