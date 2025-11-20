@@ -52,7 +52,7 @@ function writeLog(filePath: string, message: string) {
   if (IS_SERVERLESS) {
     return;
   }
-  
+
   try {
     // 本地開發環境：寫入文件
     if (fs.existsSync(LOG_DIR)) {
@@ -69,7 +69,7 @@ export const logger = {
   // 記錄錯誤
   error: (message: string, error?: any) => {
     const logMessage = formatLogMessage("ERROR", message, error);
-    
+
     // 在無服務器環境中，詳細輸出到控制台（會被 Vercel 捕獲）
     if (IS_SERVERLESS) {
       console.error("=".repeat(80));
@@ -97,7 +97,7 @@ export const logger = {
       message,
       data ? JSON.stringify(data, null, 2) : undefined
     );
-    
+
     if (IS_SERVERLESS) {
       console.log("[INFO]", message, data ? JSON.stringify(data, null, 2) : "");
     } else {
@@ -115,7 +115,11 @@ export const logger = {
     );
 
     if (IS_SERVERLESS) {
-      console.warn("[WARN]", message, data ? JSON.stringify(data, null, 2) : "");
+      console.warn(
+        "[WARN]",
+        message,
+        data ? JSON.stringify(data, null, 2) : ""
+      );
     } else {
       writeLog(ERROR_LOG_FILE, logMessage);
       console.warn(logMessage.trim());
