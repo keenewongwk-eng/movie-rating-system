@@ -48,4 +48,3 @@ export async function getNotifications(limit: number = 50) {
     take: limit,
   });
 }
-
