@@ -57,3 +57,17 @@ model Rating {
   @@index([parentId])
   @@map("ratings")
 }
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // "movie_create", "rating_create", "rating_update", "reply_create", "user_create", "user_update", "movie_update"
+  message     String   // 通知訊息
+  entityId    String?  // 相關實體 ID（電影、評分、用戶等）
+  entityType  String?  // 實體類型（"movie", "rating", "user"）
+  metadata    Json?    // 額外的元數據（JSON 格式）
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([type])
+  @@map("notifications")
+}

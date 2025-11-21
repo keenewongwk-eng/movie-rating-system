@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function PUT(
   request: Request,
@@ -31,6 +32,20 @@ export async function PUT(
     });
 
     logger.info("Rating updated successfully", { ratingId: params.id });
+
+    // 創建通知
+    await createNotification({
+      type: "rating_update",
+      message: `${updatedRating.user.name} 更新了「${updatedRating.movie.title}」的評分`,
+      entityId: updatedRating.id,
+      entityType: "rating",
+      metadata: {
+        userName: updatedRating.user.name,
+        movieTitle: updatedRating.movie.title,
+        rating: updatedRating.rating,
+      },
+    });
+
     return NextResponse.json(updatedRating);
   } catch (error: any) {
     if (error.code === "P2025") {

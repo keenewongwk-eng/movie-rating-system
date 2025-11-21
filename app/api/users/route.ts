@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   try {
@@ -77,6 +78,18 @@ export async function POST(request: Request) {
       userId: user.id,
       name: user.name,
     });
+
+    // 創建通知
+    await createNotification({
+      type: "user_create",
+      message: `新用戶「${user.name}」已加入`,
+      entityId: user.id,
+      entityType: "user",
+      metadata: {
+        name: user.name,
+      },
+    });
+
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {
     if (error.code === "P2002") {

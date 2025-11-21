@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(
   request: Request,
@@ -70,6 +71,17 @@ export async function PUT(
       data: {
         name,
         icon: icon !== undefined ? icon : undefined,
+      },
+    });
+
+    // 創建通知
+    await createNotification({
+      type: "user_update",
+      message: `用戶「${updatedUser.name}」已更新資料`,
+      entityId: updatedUser.id,
+      entityType: "user",
+      metadata: {
+        name: updatedUser.name,
       },
     });
 

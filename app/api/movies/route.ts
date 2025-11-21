@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   try {
@@ -116,6 +117,20 @@ export async function POST(request: Request) {
       title: movie.title,
       recommendersCount: movie.recommenders.length,
     });
+
+    // 創建通知
+    await createNotification({
+      type: "movie_create",
+      message: `新電影「${movie.title}」已創建`,
+      entityId: movie.id,
+      entityType: "movie",
+      metadata: {
+        title: movie.title,
+        hasImage: !!movie.image,
+        recommendersCount: movie.recommenders.length,
+      },
+    });
+
     return NextResponse.json(movie, { status: 201 });
   } catch (error: any) {
     if (error.code === "P2002") {

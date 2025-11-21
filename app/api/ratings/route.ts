@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   try {
@@ -99,6 +100,37 @@ export async function POST(request: Request) {
       userId,
       isReply: !!parentId,
     });
+
+    // 創建通知
+    if (parentId) {
+      // 回覆通知
+      await createNotification({
+        type: "reply_create",
+        message: `${newRating.user.name} 回覆了「${newRating.movie.title}」的評論`,
+        entityId: newRating.id,
+        entityType: "rating",
+        metadata: {
+          userName: newRating.user.name,
+          movieTitle: newRating.movie.title,
+          review: newRating.review,
+        },
+      });
+    } else {
+      // 評分通知
+      await createNotification({
+        type: "rating_create",
+        message: `${newRating.user.name} 為「${newRating.movie.title}」評分 ${newRating.rating} 星`,
+        entityId: newRating.id,
+        entityType: "rating",
+        metadata: {
+          userName: newRating.user.name,
+          movieTitle: newRating.movie.title,
+          rating: newRating.rating,
+          review: newRating.review,
+        },
+      });
+    }
+
     return NextResponse.json(newRating, { status: 201 });
   } catch (error: any) {
     return handleApiError(error, {

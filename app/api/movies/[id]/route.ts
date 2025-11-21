@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error-handler";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(
   request: Request,
@@ -150,6 +151,17 @@ export async function PUT(
         ? ratingsWithScore.reduce((sum: number, r: any) => sum + r.rating, 0) /
           ratingsWithScore.length
         : 0;
+
+    // 創建通知
+    await createNotification({
+      type: "movie_update",
+      message: `電影「${updatedMovie.title}」已更新`,
+      entityId: updatedMovie.id,
+      entityType: "movie",
+      metadata: {
+        title: updatedMovie.title,
+      },
+    });
 
     return NextResponse.json({
       id: updatedMovie.id,
