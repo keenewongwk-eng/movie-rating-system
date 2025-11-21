@@ -143,12 +143,7 @@ export default function MovieCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 mb-1">
                 <h3
-                  className="text-lg font-bold flex-1 overflow-hidden hover:text-blue-400 transition-colors"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
+                  className="text-lg font-bold flex-1 overflow-hidden hover:text-blue-400 transition-colors whitespace-nowrap text-ellipsis"
                   title={movie.title}
                 >
                   {movie.title}
@@ -242,10 +237,11 @@ export default function MovieCard({
             )}
           </div>
         )}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h3
-            className="text-2xl font-bold mb-1 cursor-pointer hover:text-blue-400 transition-colors"
+            className="text-2xl font-bold mb-1 cursor-pointer hover:text-blue-400 transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
             onClick={handleCardClick}
+            title={movie.title}
           >
             {movie.title}
           </h3>
